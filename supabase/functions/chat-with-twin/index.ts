@@ -7,6 +7,56 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiter (resets on function cold start)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_MAX = 20; // Max requests per window
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
+// Input validation functions
+function validateSlug(slug: unknown): slug is string {
+  return typeof slug === 'string' && 
+         slug.length > 0 && 
+         slug.length <= 50 && 
+         /^[a-z0-9-]+$/.test(slug);
+}
+
+function validateMessage(message: unknown): message is string {
+  return typeof message === 'string' && 
+         message.length > 0 && 
+         message.length <= 2000;
+}
+
+function validateConversationHistory(history: unknown): history is Array<{role: string; content: string}> {
+  if (!history) return true; // Optional field
+  if (!Array.isArray(history)) return false;
+  if (history.length > 20) return false;
+  
+  return history.every(item => 
+    typeof item === 'object' && 
+    item !== null &&
+    typeof item.role === 'string' && 
+    typeof item.content === 'string' &&
+    item.content.length <= 2000
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,11 +64,43 @@ serve(async (req) => {
   }
 
   try {
-    const { slug, message, conversationHistory } = await req.json();
-
-    if (!slug || !message) {
+    // Rate limiting check
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+    
+    if (!checkRateLimit(clientIP)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
       return new Response(
-        JSON.stringify({ error: 'Missing slug or message' }),
+        JSON.stringify({ error: 'Too many requests. Please wait a moment before trying again.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = await req.json();
+    const { slug, message, conversationHistory } = body;
+
+    // Input validation
+    if (!validateSlug(slug)) {
+      console.warn(`Invalid slug received: ${typeof slug === 'string' ? slug.substring(0, 100) : 'non-string'}`);
+      return new Response(
+        JSON.stringify({ error: 'Invalid profile identifier' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!validateMessage(message)) {
+      console.warn(`Invalid message: length=${typeof message === 'string' ? message.length : 'non-string'}`);
+      return new Response(
+        JSON.stringify({ error: 'Message is required and must be under 2000 characters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!validateConversationHistory(conversationHistory)) {
+      console.warn('Invalid conversation history format or length');
+      return new Response(
+        JSON.stringify({ error: 'Invalid conversation history' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -31,7 +113,7 @@ serve(async (req) => {
     // Fetch the profile by slug
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('display_name, bio, avatar_url, user_id')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -44,10 +126,10 @@ serve(async (req) => {
       );
     }
 
-    // Fetch all AI context for this user
+    // Fetch all AI context for this user (user_id needed internally but not exposed)
     const { data: contexts, error: contextError } = await supabase
       .from('ai_context')
-      .select('*')
+      .select('category, title, content')
       .eq('user_id', profile.user_id)
       .order('category', { ascending: true });
 
@@ -95,10 +177,15 @@ Guidelines:
 - Keep responses conversational and natural
 - Don't mention that you're an AI unless directly asked`;
 
-    // Build messages array with conversation history
+    // Build messages array with conversation history (sanitized)
+    const sanitizedHistory = (conversationHistory || []).map((h: {role: string; content: string}) => ({
+      role: h.role === 'user' ? 'user' : 'assistant',
+      content: h.content.substring(0, 2000)
+    }));
+
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...(conversationHistory || []),
+      ...sanitizedHistory,
       { role: 'user', content: message }
     ];
 
@@ -135,6 +222,7 @@ Guidelines:
 
     console.log('AI response generated successfully');
 
+    // Return response WITHOUT user_id
     return new Response(
       JSON.stringify({ 
         response: aiResponse,
@@ -149,9 +237,9 @@ Guidelines:
 
   } catch (error) {
     console.error('Error in chat-with-twin function:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Generic error message to avoid leaking internal details
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'An error occurred processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
