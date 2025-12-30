@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, ArrowLeft, User, Loader2 } from "lucide-react";
+import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
+import { SuggestedQuestions, generateSuggestedQuestions } from "@/components/SuggestedQuestions";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,6 +20,12 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
+interface ContextItem {
+  category: string;
+  title: string;
+  content: string;
+}
+
 const PublicProfile = () => {
   const { slug } = useParams<{ slug: string }>();
   const { toast } = useToast();
@@ -28,6 +36,8 @@ const PublicProfile = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -44,23 +54,53 @@ const PublicProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("display_name, bio, avatar_url")
+        .select("display_name, bio, avatar_url, user_id")
         .eq("slug", slug)
         .eq("is_published", true)
         .single();
 
-      if (error || !data) {
+      if (profileError || !profileData) {
         setNotFound(true);
-      } else {
-        setProfile(data);
-        // Add welcome message
-        setMessages([{
-          role: 'assistant',
-          content: `Hi! I'm ${data.display_name || 'here'}'s AI twin. ${data.bio ? data.bio + ' ' : ''}Feel free to ask me anything!`
-        }]);
+        setLoading(false);
+        return;
       }
+
+      setProfile({
+        display_name: profileData.display_name,
+        bio: profileData.bio,
+        avatar_url: profileData.avatar_url,
+      });
+
+      // Fetch AI context for suggested questions (using service role through edge function)
+      try {
+        const { data: contextData } = await supabase.functions.invoke('get-profile-context', {
+          body: { slug }
+        });
+        
+        if (contextData?.contexts) {
+          const questions = generateSuggestedQuestions(
+            contextData.contexts,
+            profileData.display_name || undefined
+          );
+          setSuggestedQuestions(questions);
+        }
+      } catch (e) {
+        // Fallback questions if context fetch fails
+        setSuggestedQuestions([
+          `What does ${profileData.display_name || 'this person'} specialize in?`,
+          `Tell me about ${profileData.display_name || 'their'}'s background`,
+          `How can ${profileData.display_name || 'they'} help me?`,
+        ]);
+      }
+
+      // Add welcome message
+      setMessages([{
+        role: 'assistant',
+        content: `Hi! I'm ${profileData.display_name || 'here'}'s AI twin. ${profileData.bio ? profileData.bio + ' ' : ''}Feel free to ask me anything!`
+      }]);
     } catch (error) {
       console.error("Error fetching profile:", error);
       setNotFound(true);
@@ -69,15 +109,16 @@ const PublicProfile = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!inputValue.trim() || isSending) return;
+  const sendMessage = async (messageText?: string) => {
+    const message = messageText || inputValue.trim();
+    if (!message || isSending) return;
 
-    const userMessage = inputValue.trim();
     setInputValue("");
     setIsSending(true);
+    setShowSuggestions(false); // Hide suggestions after first message
 
     // Add user message to chat
-    const newMessages: Message[] = [...messages, { role: 'user', content: userMessage }];
+    const newMessages: Message[] = [...messages, { role: 'user', content: message }];
     setMessages(newMessages);
 
     try {
@@ -90,7 +131,7 @@ const PublicProfile = () => {
       const { data, error } = await supabase.functions.invoke('chat-with-twin', {
         body: {
           slug,
-          message: userMessage,
+          message: message,
           conversationHistory: conversationHistory.slice(0, -1) // Exclude the message we just added
         }
       });
@@ -119,6 +160,10 @@ const PublicProfile = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleSuggestedQuestion = (question: string) => {
+    sendMessage(question);
   };
 
   if (loading) {
@@ -168,19 +213,26 @@ const PublicProfile = () => {
             <span className="font-display text-xl">Profile.Mu</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-            {profile?.avatar_url ? (
-              <img 
-                src={profile.avatar_url} 
-                alt={profile.display_name || "Profile"} 
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-            )}
-            <span className="font-medium">{profile?.display_name || "AI Twin"}</span>
+          <div className="flex items-center gap-2">
+            {/* Share buttons */}
+            <ShareProfileButton slug={slug || ""} displayName={profile?.display_name || undefined} />
+            <ShareChatButton messages={messages} displayName={profile?.display_name || undefined} />
+
+            {/* Profile info */}
+            <div className="flex items-center gap-3 ml-2 pl-2 border-l border-border/50">
+              {profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt={profile.display_name || "Profile"} 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+              )}
+              <span className="font-medium hidden sm:block">{profile?.display_name || "AI Twin"}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -209,6 +261,15 @@ const PublicProfile = () => {
             </p>
           )}
         </div>
+
+        {/* Suggested Questions */}
+        {showSuggestions && suggestedQuestions.length > 0 && (
+          <SuggestedQuestions
+            questions={suggestedQuestions}
+            onSelect={handleSuggestedQuestion}
+            displayName={profile?.display_name || undefined}
+          />
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto mb-4 space-y-4">
@@ -256,7 +317,7 @@ const PublicProfile = () => {
               className="flex-1"
             />
             <Button 
-              onClick={sendMessage} 
+              onClick={() => sendMessage()} 
               disabled={!inputValue.trim() || isSending}
               size="icon"
               className="shrink-0"
