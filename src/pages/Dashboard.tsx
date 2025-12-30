@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
+import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { 
-  MessageCircle, 
+  MessageCircle,
   LogOut, 
   Plus, 
   Trash2, 
@@ -28,7 +29,8 @@ import {
   Target,
   ShieldAlert,
   Settings,
-  BarChart3
+  BarChart3,
+  Wand2,
 } from "lucide-react";
 
 interface Profile {
@@ -83,6 +85,12 @@ const Dashboard = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [newContext, setNewContext] = useState({ category: "bio", title: "", content: "" });
   const [showNewForm, setShowNewForm] = useState(false);
+  const [showExpertiseWizard, setShowExpertiseWizard] = useState(false);
+
+  // Check if expertise setup is needed
+  const hasExpertiseAreas = contexts.some(c => c.category === "expertise_areas");
+  const hasBoundaries = contexts.some(c => c.category === "expertise_boundaries");
+  const needsExpertiseSetup = !hasExpertiseAreas && !hasBoundaries;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -244,6 +252,54 @@ const Dashboard = () => {
     }
   };
 
+  const handleExpertiseWizardComplete = async (
+    expertiseAreas: Array<{ title: string; content: string }>,
+    boundaries: Array<{ title: string; content: string }>
+  ) => {
+    if (!user) return;
+
+    try {
+      const newEntries = [
+        ...expertiseAreas.map(e => ({
+          user_id: user.id,
+          category: "expertise_areas",
+          title: e.title,
+          content: e.content,
+        })),
+        ...boundaries.map(b => ({
+          user_id: user.id,
+          category: "expertise_boundaries",
+          title: b.title,
+          content: b.content,
+        })),
+      ];
+
+      if (newEntries.length > 0) {
+        const { data, error } = await supabase
+          .from("ai_context")
+          .insert(newEntries)
+          .select();
+
+        if (error) throw error;
+
+        if (data) {
+          setContexts([...contexts, ...data]);
+        }
+
+        toast({
+          title: "Expertise setup complete!",
+          description: "Your AI twin now knows its areas of expertise and boundaries.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -259,6 +315,13 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Expertise Wizard */}
+      <ExpertiseWizard
+        open={showExpertiseWizard}
+        onOpenChange={setShowExpertiseWizard}
+        onComplete={handleExpertiseWizardComplete}
+      />
+
       {/* Background */}
       <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
       
@@ -348,6 +411,29 @@ const Dashboard = () => {
             {/* Knowledge Tab */}
             <TabsContent value="knowledge" className="space-y-6">
 
+              {/* Expertise Setup Banner */}
+              {needsExpertiseSetup && (
+                <Card variant="flat" className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Wand2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Define your expertise</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Help your AI give more accurate responses by setting expertise areas and boundaries.
+                        </p>
+                      </div>
+                    </div>
+                    <Button onClick={() => setShowExpertiseWizard(true)} className="gap-2 shrink-0">
+                      <Wand2 className="w-4 h-4" />
+                      Quick Setup (2 min)
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* AI Context */}
               <Card variant="elevated">
                 <CardHeader>
@@ -361,10 +447,18 @@ const Dashboard = () => {
                         Add context and knowledge for your AI twin to learn from.
                       </CardDescription>
                     </div>
-                    <Button onClick={() => setShowNewForm(true)} variant="soft" className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      Add Knowledge
-                    </Button>
+                    <div className="flex gap-2">
+                      {!needsExpertiseSetup && (
+                        <Button onClick={() => setShowExpertiseWizard(true)} variant="ghost" size="sm" className="gap-2">
+                          <Wand2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">Setup Expertise</span>
+                        </Button>
+                      )}
+                      <Button onClick={() => setShowNewForm(true)} variant="soft" className="gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Knowledge
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -424,16 +518,38 @@ const Dashboard = () => {
                   ) : (
                     <div className="space-y-3">
                       {contexts.map((context) => (
-                        <Card key={context.id} variant="flat" className="p-4">
+                        <Card 
+                          key={context.id} 
+                          variant="flat" 
+                          className={`p-4 ${
+                            context.category === "expertise_areas" 
+                              ? "border-l-4 border-l-primary" 
+                              : context.category === "expertise_boundaries"
+                              ? "border-l-4 border-l-amber-500"
+                              : ""
+                          }`}
+                        >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="p-1.5 rounded-md bg-primary/10 text-primary">
+                                <span className={`p-1.5 rounded-md ${
+                                  context.category === "expertise_areas" 
+                                    ? "bg-primary/10 text-primary" 
+                                    : context.category === "expertise_boundaries"
+                                    ? "bg-amber-500/10 text-amber-500"
+                                    : "bg-primary/10 text-primary"
+                                }`}>
                                   {categoryIcons[context.category] || categoryIcons.custom}
                                 </span>
                                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                   {categoryLabels[context.category] || context.category}
                                 </span>
+                                {context.category === "expertise_areas" && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">Expert</span>
+                                )}
+                                {context.category === "expertise_boundaries" && (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">Boundary</span>
+                                )}
                               </div>
                               <h4 className="font-medium mb-1">{context.title}</h4>
                               <p className="text-sm text-muted-foreground line-clamp-2">
