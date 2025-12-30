@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
+import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
 import { 
   MessageCircle,
   LogOut, 
@@ -40,6 +41,7 @@ interface Profile {
   bio: string | null;
   is_published: boolean;
   slug: string | null;
+  avatar_url: string | null;
 }
 
 interface AIContext {
@@ -585,7 +587,17 @@ const Dashboard = () => {
                     Basic information that represents your AI twin.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  {/* Avatar Upload */}
+                  {user && profile && (
+                    <AvatarUpload
+                      userId={user.id}
+                      currentAvatarUrl={profile.avatar_url}
+                      displayName={profile.display_name}
+                      onAvatarUpdate={(url) => setProfile({ ...profile, avatar_url: url })}
+                    />
+                  )}
+                  
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="displayName">Display Name</Label>
