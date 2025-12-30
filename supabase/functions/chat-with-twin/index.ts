@@ -113,7 +113,7 @@ serve(async (req) => {
     // Fetch the profile by slug
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('display_name, bio, avatar_url, user_id')
+      .select('id, display_name, bio, avatar_url, user_id')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -124,6 +124,35 @@ serve(async (req) => {
         JSON.stringify({ error: 'Profile not found or not published' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Track conversation analytics
+    const conversationId = body.conversationId;
+    if (conversationId) {
+      // Update existing conversation
+      await supabase
+        .from('conversations')
+        .update({ 
+          messages_count: (conversationHistory?.length || 0) + 2,
+          last_message_at: new Date().toISOString()
+        })
+        .eq('id', conversationId);
+    } else {
+      // Create new conversation - will return the ID for client to use
+      const visitorId = clientIP.replace(/\./g, '-');
+      const { data: newConversation } = await supabase
+        .from('conversations')
+        .insert({
+          profile_id: profile.id,
+          visitor_id: visitorId,
+          messages_count: 1
+        })
+        .select('id')
+        .single();
+      
+      if (newConversation) {
+        console.log('New conversation created:', newConversation.id);
+      }
     }
 
     // Fetch all AI context for this user (user_id needed internally but not exposed)

@@ -44,6 +44,41 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          id: string
+          last_message_at: string
+          messages_count: number
+          profile_id: string
+          started_at: string
+          visitor_id: string | null
+        }
+        Insert: {
+          id?: string
+          last_message_at?: string
+          messages_count?: number
+          profile_id: string
+          started_at?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          id?: string
+          last_message_at?: string
+          messages_count?: number
+          profile_id?: string
+          started_at?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
