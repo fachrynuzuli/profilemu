@@ -39,14 +39,9 @@ export function Navbar() {
                 Dashboard
               </Button>
             ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
-                  Sign In
-                </Button>
-                <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
-                  Create Your AI
-                </Button>
-              </>
+              <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
+                Sign In
+              </Button>
             )
           )}
         </div>
