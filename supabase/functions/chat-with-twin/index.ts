@@ -166,7 +166,42 @@ serve(async (req) => {
       console.error('Error fetching context:', contextError);
     }
 
-    // Build the AI context string
+    // Separate expertise areas and boundaries from other context
+    const expertiseAreas = contexts?.filter(c => c.category === 'expertise_areas') || [];
+    const expertiseBoundaries = contexts?.filter(c => c.category === 'expertise_boundaries') || [];
+    const otherContexts = contexts?.filter(c => 
+      c.category !== 'expertise_areas' && c.category !== 'expertise_boundaries'
+    ) || [];
+
+    // Build expertise section
+    let expertiseSection = '';
+    if (expertiseAreas.length > 0) {
+      expertiseSection = `
+=== YOUR AREAS OF EXPERTISE ===
+These are topics where you should respond CONFIDENTLY and IN-DEPTH. You are an expert in these areas:
+${expertiseAreas.map(e => `• ${e.title}: ${e.content}`).join('\n')}
+
+When asked about these topics, provide detailed, knowledgeable responses with examples and insights.
+`;
+    }
+
+    // Build boundaries section
+    let boundariesSection = '';
+    if (expertiseBoundaries.length > 0) {
+      const expertiseList = expertiseAreas.map(e => e.title).join(', ') || 'my specialized areas';
+      boundariesSection = `
+=== KNOWLEDGE BOUNDARIES ===
+For these topics, you should POLITELY DEFER and acknowledge they are outside your expertise:
+${expertiseBoundaries.map(b => `• ${b.title}: ${b.content}`).join('\n')}
+
+When asked about boundary topics, respond with something like:
+"That's actually outside my area of expertise. I specialize in ${expertiseList}. For ${expertiseBoundaries[0]?.title || 'that topic'}, I'd recommend consulting a specialist."
+
+IMPORTANT: Do NOT try to give advice on boundary topics. Be honest about your limitations.
+`;
+    }
+
+    // Build general context section
     const contextParts: string[] = [];
     
     if (profile.display_name) {
@@ -176,9 +211,9 @@ serve(async (req) => {
       contextParts.push(`Bio: ${profile.bio}`);
     }
 
-    if (contexts && contexts.length > 0) {
+    if (otherContexts.length > 0) {
       const groupedContext: Record<string, string[]> = {};
-      contexts.forEach(ctx => {
+      otherContexts.forEach(ctx => {
         if (!groupedContext[ctx.category]) {
           groupedContext[ctx.category] = [];
         }
@@ -192,19 +227,22 @@ serve(async (req) => {
 
     const personalContext = contextParts.join('\n');
 
-    // Build system prompt
+    // Build enhanced system prompt
     const systemPrompt = `You are an AI twin of ${profile.display_name || 'a person'}. You represent them in conversations, answering questions as they would, using their knowledge, personality, and communication style.
-
-Here is everything you know about the person you represent:
+${expertiseSection}${boundariesSection}
+=== PERSONAL CONTEXT ===
 ${personalContext}
 
-Guidelines:
-- Respond as if you ARE this person, using first person ("I", "my", "me")
-- Match their personality and communication style based on the context provided
-- Be friendly and engaging while staying true to their character
-- If asked about something not in your context, politely say you're not sure or that aspect hasn't been shared with you yet
-- Keep responses conversational and natural
-- Don't mention that you're an AI unless directly asked`;
+=== RESPONSE GUIDELINES ===
+1. FOR EXPERTISE TOPICS: Answer confidently with depth, examples, and insights. Show your knowledge.
+2. FOR BOUNDARY TOPICS: Politely acknowledge this is outside your specialty. Redirect to your expertise areas. Do NOT attempt to give advice.
+3. FOR GENERAL TOPICS: You can provide helpful general information while noting it's not your specialty.
+4. ALWAYS respond as if you ARE this person, using first person ("I", "my", "me")
+5. Match their personality and communication style based on the context provided
+6. Be friendly and engaging while staying true to their character
+7. If asked about something not in your context, politely say you're not sure or that aspect hasn't been shared with you yet
+8. Keep responses conversational and natural
+9. Don't mention that you're an AI unless directly asked`;
 
     // Build messages array with conversation history (sanitized)
     const sanitizedHistory = (conversationHistory || []).map((h: {role: string; content: string}) => ({
@@ -225,6 +263,7 @@ Guidelines:
     }
 
     console.log('Calling Lovable AI Gateway for profile:', profile.display_name);
+    console.log('Expertise areas:', expertiseAreas.length, 'Boundaries:', expertiseBoundaries.length);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
