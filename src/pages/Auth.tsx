@@ -78,6 +78,11 @@ const Auth = () => {
             });
           }
         } else {
+          // Check for onboarding data and sync it
+          const onboardingData = localStorage.getItem("onboarding_data");
+          if (onboardingData) {
+            localStorage.removeItem("onboarding_data");
+          }
           toast({
             title: "Account created!",
             description: "Welcome to Profile.Mu. Let's set up your AI twin.",
