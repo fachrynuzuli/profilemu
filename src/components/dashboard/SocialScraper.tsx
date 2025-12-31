@@ -2,18 +2,19 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResumeUpload } from "./ResumeUpload";
 import { 
   Loader2, 
-  Linkedin, 
   Globe, 
   Sparkles,
   Plus,
   X,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from "lucide-react";
 
 interface ScrapeResult {
@@ -54,7 +55,11 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'linkedin':
-        return <Linkedin className="w-4 h-4" />;
+        return (
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        );
       case 'twitter':
         return (
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -153,119 +158,137 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
-          Import from Social Profiles
+          Auto-Import Knowledge
         </CardTitle>
         <CardDescription>
-          Paste your LinkedIn, Twitter/X, or personal website URLs to automatically extract knowledge for your AI twin.
+          Import your professional info from websites or documents to train your AI twin.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-3">
-          {urls.map((url, index) => (
-            <div key={index} className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  value={url}
-                  onChange={(e) => updateUrl(index, e.target.value)}
-                  placeholder="https://linkedin.com/in/your-profile or your-website.com"
-                  disabled={isLoading}
-                />
-              </div>
-              {urls.length > 1 && (
+        <Tabs defaultValue="resume" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="resume" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Resume/PDF
+            </TabsTrigger>
+            <TabsTrigger value="website" className="gap-2">
+              <Globe className="w-4 h-4" />
+              Website
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="resume" className="mt-4">
+            <ResumeUpload onComplete={onComplete} />
+          </TabsContent>
+          
+          <TabsContent value="website" className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Enter your personal website or portfolio URL. Note: LinkedIn and Instagram require direct scraping access.
+            </p>
+            
+            <div className="space-y-3">
+              {urls.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      value={url}
+                      onChange={(e) => updateUrl(index, e.target.value)}
+                      placeholder="https://your-website.com"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {urls.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeUrl(index)}
+                      disabled={isLoading}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              {urls.length < 5 && (
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeUrl(index)}
+                  variant="outline"
+                  size="sm"
+                  onClick={addUrl}
                   disabled={isLoading}
+                  className="gap-2"
                 >
-                  <X className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
+                  Add Another URL
                 </Button>
               )}
             </div>
-          ))}
-        </div>
 
-        <div className="flex gap-2">
-          {urls.length < 5 && (
             <Button
-              variant="outline"
-              size="sm"
-              onClick={addUrl}
-              disabled={isLoading}
-              className="gap-2"
+              onClick={handleScrape}
+              disabled={isLoading || urls.every(u => !u.trim())}
+              className="w-full gap-2"
             >
-              <Plus className="w-4 h-4" />
-              Add Another URL
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Analyzing website...
+                </>
+              ) : (
+                <>
+                  <Globe className="w-4 h-4" />
+                  Import from Website
+                </>
+              )}
             </Button>
-          )}
-        </div>
 
-        <Button
-          onClick={handleScrape}
-          disabled={isLoading || urls.every(u => !u.trim())}
-          className="w-full gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Analyzing profiles...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              Import Knowledge
-            </>
-          )}
-        </Button>
-
-        {/* Results display */}
-        {results && results.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-border">
-            <Label className="text-sm font-medium">Import Results</Label>
-            {results.map((result, index) => (
-              <div 
-                key={index} 
-                className={`p-3 rounded-lg border ${
-                  result.error 
-                    ? 'border-destructive/30 bg-destructive/5' 
-                    : 'border-primary/30 bg-primary/5'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  {getPlatformIcon(result.platform)}
-                  <span className="text-sm font-medium truncate flex-1">
-                    {result.url}
-                  </span>
-                  {result.error ? (
-                    <AlertCircle className="w-4 h-4 text-destructive" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                  )}
-                </div>
-                
-                {result.error ? (
-                  <p className="text-sm text-destructive">{result.error}</p>
-                ) : (
-                  <div className="space-y-1">
-                    {result.extracted.map((item, i) => (
-                      <div key={i} className="text-sm text-muted-foreground">
-                        ✓ {item.title}
+            {/* Results display */}
+            {results && results.length > 0 && (
+              <div className="space-y-3 pt-4 border-t border-border">
+                <p className="text-sm font-medium">Import Results</p>
+                {results.map((result, index) => (
+                  <div 
+                    key={index} 
+                    className={`p-3 rounded-lg border ${
+                      result.error 
+                        ? 'border-destructive/30 bg-destructive/5' 
+                        : 'border-primary/30 bg-primary/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      {getPlatformIcon(result.platform)}
+                      <span className="text-sm font-medium truncate flex-1">
+                        {result.url}
+                      </span>
+                      {result.error ? (
+                        <AlertCircle className="w-4 h-4 text-destructive" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                      )}
+                    </div>
+                    
+                    {result.error ? (
+                      <p className="text-sm text-destructive">{result.error}</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {result.extracted.map((item, i) => (
+                          <div key={i} className="text-sm text-muted-foreground">
+                            ✓ {item.title}
+                          </div>
+                        ))}
+                        {result.extracted.length === 0 && (
+                          <p className="text-sm text-muted-foreground">No content extracted</p>
+                        )}
                       </div>
-                    ))}
-                    {result.extracted.length === 0 && (
-                      <p className="text-sm text-muted-foreground">No content extracted</p>
                     )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-
-        <p className="text-xs text-muted-foreground text-center">
-          Supports LinkedIn profiles, Twitter/X profiles, and personal websites. 
-          Content is automatically categorized and added to your knowledge base.
-        </p>
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
