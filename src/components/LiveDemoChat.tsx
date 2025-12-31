@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RichText } from "@/components/ui/rich-text";
 import { Send, Bot, User, Loader2 } from "lucide-react";
-
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -163,7 +163,11 @@ export function LiveDemoChat() {
                   : "bg-card border border-border rounded-tl-sm"
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              {message.role === "user" ? (
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              ) : (
+                <RichText content={message.content} className="text-sm" />
+              )}
             </div>
           </div>
         ))}
