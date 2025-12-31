@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { RichText } from "@/components/ui/rich-text";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, ArrowLeft, User, Loader2 } from "lucide-react";
 import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
@@ -285,7 +286,11 @@ const PublicProfile = () => {
                     : 'bg-card border border-border/50 shadow-card rounded-bl-md'
                 }`}
               >
-                <p className="text-sm md:text-base whitespace-pre-wrap">{msg.content}</p>
+                {msg.role === 'user' ? (
+                  <p className="text-sm md:text-base whitespace-pre-wrap">{msg.content}</p>
+                ) : (
+                  <RichText content={msg.content} className="text-sm md:text-base" />
+                )}
               </div>
             </div>
           ))}
