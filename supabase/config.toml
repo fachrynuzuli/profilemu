@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.get-profile-context]
 verify_jwt = false
+
+[functions.scrape-social-profile]
+verify_jwt = false

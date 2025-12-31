@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
+import { SocialScraper } from "@/components/dashboard/SocialScraper";
 import { 
   MessageCircle,
   LogOut, 
@@ -412,6 +413,9 @@ const Dashboard = () => {
 
             {/* Knowledge Tab */}
             <TabsContent value="knowledge" className="space-y-6">
+
+              {/* Social Scraper - Import from profiles */}
+              <SocialScraper onComplete={fetchData} />
 
               {/* Expertise Setup Banner */}
               {needsExpertiseSetup && (
