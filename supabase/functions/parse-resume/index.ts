@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import mammoth from "https://esm.sh/mammoth@1.6.0";
+import * as pdfjs from "https://esm.sh/pdfjs-dist@4.0.379/build/pdf.min.mjs";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,25 +68,75 @@ serve(async (req) => {
 
     // Read file content
     const fileBuffer = await file.arrayBuffer();
-    const fileContent = new TextDecoder().decode(fileBuffer);
-    
-    // For PDFs, we'll extract what we can (basic text extraction)
-    // Note: Full PDF parsing would require a dedicated library
-    let textContent = fileContent;
-    
-    // Clean up binary noise from PDFs (basic cleanup)
-    if (file.type === 'application/pdf') {
-      // Extract readable text portions from PDF
-      const textMatches = fileContent.match(/[\x20-\x7E\n\r\t]+/g) || [];
-      textContent = textMatches
-        .filter(t => t.length > 10)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .substring(0, 15000); // Limit context size
-    }
+    let textContent = '';
 
     console.log('Processing resume/document for user:', user.id);
     console.log('File type:', file.type, 'Size:', file.size);
+
+    // Parse based on file type
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      // Plain text - direct decode
+      textContent = new TextDecoder().decode(fileBuffer);
+      console.log('TXT extracted, length:', textContent.length);
+      
+    } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+               || file.name.endsWith('.docx')) {
+      // DOCX - use mammoth to extract text
+      try {
+        const result = await mammoth.extractRawText({ arrayBuffer: fileBuffer });
+        textContent = result.value;
+        console.log('DOCX extracted, length:', textContent.length);
+      } catch (docxError) {
+        console.error('DOCX parsing error:', docxError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to parse DOCX file. Please ensure it is a valid Word document.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+    } else if (file.type === 'application/pdf') {
+      // PDF - use pdfjs-dist for extraction
+      try {
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(fileBuffer) });
+        const pdf = await loadingTask.promise;
+        const textParts: string[] = [];
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items
+            .map((item: any) => item.str)
+            .join(' ');
+          textParts.push(pageText);
+        }
+        
+        textContent = textParts.join('\n\n');
+        console.log('PDF extracted, pages:', pdf.numPages, 'length:', textContent.length);
+      } catch (pdfError) {
+        console.error('PDF parsing error:', pdfError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to parse PDF. It may be encrypted or corrupted.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+    } else if (file.type === 'application/msword' || file.name.endsWith('.doc')) {
+      // Old DOC format not supported
+      return new Response(
+        JSON.stringify({ success: false, error: 'Old .doc format is not supported. Please save as .docx or PDF and try again.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate extracted content
+    if (textContent.length < 50) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Could not extract text from this file. It may be scanned/image-based. Please try a text-based document.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Extracted text preview:', textContent.substring(0, 300));
 
     // Use Lovable AI to extract structured information
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
