@@ -294,6 +294,15 @@ ${contextParts.join('\n')}
     const aiResponse = data.choices?.[0]?.message?.content || "I'm having trouble responding right now.";
     console.log('AI response generated successfully');
 
+    // Save assistant response
+    if (activeConversationId) {
+      await supabase.from('messages').insert({
+        conversation_id: activeConversationId,
+        role: 'assistant',
+        content: aiResponse,
+      });
+    }
+
     return new Response(
       JSON.stringify({
         response: aiResponse,
