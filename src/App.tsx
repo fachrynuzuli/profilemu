@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import PublicProfile from "./pages/PublicProfile";
+import EmbedChat from "./pages/EmbedChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
