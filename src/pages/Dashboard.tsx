@@ -714,11 +714,7 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            {/* Embed Code - below Settings */}
-            <TabsContent value="profile" className="space-y-6">
-              {/* This is handled above, but we add Embed Card after settings */}
+              <EmbedCodeCard slug={profile?.slug || null} isPublished={profile?.is_published || false} />
             </TabsContent>
 
             {/* Analytics Tab */}
