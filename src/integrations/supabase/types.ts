@@ -117,9 +117,12 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          greeting_message: string | null
           id: string
           is_published: boolean | null
+          response_length: string | null
           slug: string | null
+          tone: string | null
           updated_at: string
           user_id: string
         }
@@ -128,9 +131,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          greeting_message?: string | null
           id?: string
           is_published?: boolean | null
+          response_length?: string | null
           slug?: string | null
+          tone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -139,9 +145,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          greeting_message?: string | null
           id?: string
           is_published?: boolean | null
+          response_length?: string | null
           slug?: string | null
+          tone?: string | null
           updated_at?: string
           user_id?: string
         }
