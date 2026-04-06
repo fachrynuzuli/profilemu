@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { MessageCircle, ArrowLeft, Mail, Lock, User } from "lucide-react";
+import { lovable } from "@/integrations/lovable/index";
+import { MessageCircle, ArrowLeft, Mail, Lock, User, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const authSchema = z.object({
