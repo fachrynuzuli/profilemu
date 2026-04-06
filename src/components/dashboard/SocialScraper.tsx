@@ -160,6 +160,43 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
     }
   };
 
+  const handleParseText = async () => {
+    if (!pasteText.trim() || pasteText.trim().length < 10) {
+      toast({ variant: "destructive", title: "Too short", description: "Please paste at least 10 characters of text." });
+      return;
+    }
+
+    setIsParsing(true);
+    setParseResults(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-text', {
+        body: { text: pasteText.trim() },
+      });
+
+      if (error) {
+        toast({ variant: "destructive", title: "Error", description: error.message || "Failed to process text." });
+        return;
+      }
+
+      if (data?.success && data.count > 0) {
+        setParseResults(data.entries.map((e: any) => ({ title: e.title, category: e.category })));
+        toast({
+          title: "Text imported!",
+          description: `AI extracted ${data.count} knowledge ${data.count === 1 ? 'entry' : 'entries'} from your text.`,
+        });
+        setPasteText("");
+        setTimeout(() => onComplete(), 1500);
+      } else {
+        toast({ variant: "destructive", title: "No content found", description: data?.error || "Could not extract information from the text." });
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred." });
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   return (
     <Card variant="elevated" className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
       <CardHeader>
