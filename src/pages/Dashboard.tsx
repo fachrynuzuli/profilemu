@@ -14,6 +14,7 @@ import { ConversationHistory } from "@/components/dashboard/ConversationHistory"
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
 import { SocialScraper } from "@/components/dashboard/SocialScraper";
+import { EmbedCodeCard } from "@/components/dashboard/EmbedCodeCard";
 import { 
   MessageCircle,
   LogOut, 
@@ -713,6 +714,7 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
+              <EmbedCodeCard slug={profile?.slug || null} isPublished={profile?.is_published || false} />
             </TabsContent>
 
             {/* Analytics Tab */}
