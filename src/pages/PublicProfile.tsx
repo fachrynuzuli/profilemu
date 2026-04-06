@@ -275,22 +275,28 @@ const PublicProfile = () => {
               >
                 {msg.role === 'user' ? (
                   <p className="text-sm md:text-base whitespace-pre-wrap">{msg.content}</p>
-                ) : index === messages.length - 1 && index > 0 ? (
-                  <TypingText content={msg.content} className="text-sm md:text-base" />
                 ) : (
                   <RichText content={msg.content} className="text-sm md:text-base" />
                 )}
               </div>
             </div>
           ))}
-          
-          {isSending && (
+
+          {/* Streaming message */}
+          {isStreaming && (
             <div className="flex justify-start animate-fade-in">
-              <div className="bg-card border border-border/50 shadow-card rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Thinking...</span>
-                </div>
+              <div className="max-w-[80%] md:max-w-[70%] bg-card border border-border/50 shadow-card rounded-2xl rounded-bl-md px-4 py-3">
+                {streamingContent ? (
+                  <div className="relative">
+                    <RichText content={streamingContent} className="text-sm md:text-base" />
+                    <span className="inline-block w-1.5 h-4 bg-primary/60 rounded-full animate-pulse ml-0.5 align-text-bottom" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Thinking...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
