@@ -24,10 +24,39 @@ const Auth = () => {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleSocialLogin = async (provider: "google" | "apple") => {
+    setSocialLoading(provider);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result.error) {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: result.error instanceof Error ? result.error.message : "Could not sign in.",
+        });
+        setSocialLoading(null);
+        return;
+      }
+
+      if (result.redirected) return;
+
+      toast({ title: "Welcome!", description: "You've successfully signed in." });
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Error", description: e.message || "Sign in failed." });
+    } finally {
+      setSocialLoading(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
