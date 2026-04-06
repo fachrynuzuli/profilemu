@@ -37,7 +37,13 @@ const PublicProfile = () => {
   const [notFound, setNotFound] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  
+  const { sendStreamingMessage, streamingContent, isStreaming } = useStreamingChat({
+    slug: slug || "",
+    onError: () => {
+      toast({ variant: "destructive", title: "Error", description: "Failed to get a response. Please try again." });
+    },
+  });
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(true);
   
