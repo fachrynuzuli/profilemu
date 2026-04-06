@@ -215,6 +215,8 @@ ${contextParts.join('\n')}
       const reader = response.body!.getReader();
       const encoder = new TextEncoder();
 
+      let fullStreamedContent = '';
+      const decoder = new TextDecoder();
       const stream = new ReadableStream({
         async start(controller) {
           try {
@@ -223,7 +225,28 @@ ${contextParts.join('\n')}
               if (done) {
                 controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                 controller.close();
+                // Save assistant response after stream completes
+                if (activeConversationId && fullStreamedContent) {
+                  supabase.from('messages').insert({
+                    conversation_id: activeConversationId,
+                    role: 'assistant',
+                    content: fullStreamedContent,
+                  }).then(() => console.log('Streamed response saved'));
+                }
                 break;
+              }
+              // Collect content for saving
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
+                  try {
+                    const parsed = JSON.parse(trimmed.slice(6));
+                    const delta = parsed.choices?.[0]?.delta?.content;
+                    if (delta) fullStreamedContent += delta;
+                  } catch {}
+                }
               }
               controller.enqueue(value);
             }
