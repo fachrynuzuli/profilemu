@@ -58,7 +58,7 @@ const PublicProfile = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, streamingContent]);
 
   const fetchProfile = async () => {
     try {
