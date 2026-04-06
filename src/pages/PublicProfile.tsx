@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { RichText } from "@/components/ui/rich-text";
+import { TypingText } from "@/components/ui/typing-text";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, ArrowLeft, User, Loader2 } from "lucide-react";
 import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
@@ -288,6 +289,8 @@ const PublicProfile = () => {
               >
                 {msg.role === 'user' ? (
                   <p className="text-sm md:text-base whitespace-pre-wrap">{msg.content}</p>
+                ) : index === messages.length - 1 && index > 0 ? (
+                  <TypingText content={msg.content} className="text-sm md:text-base" />
                 ) : (
                   <RichText content={msg.content} className="text-sm md:text-base" />
                 )}

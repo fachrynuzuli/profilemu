@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
+import { TypingText } from "@/components/ui/typing-text";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 interface Message {
   role: "user" | "assistant";
@@ -167,6 +168,8 @@ export function LiveDemoChat() {
             >
               {message.role === "user" ? (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              ) : index === messages.length - 1 && index > 0 ? (
+                <TypingText content={message.content} className="text-sm" />
               ) : (
                 <RichText content={message.content} className="text-sm" />
               )}
