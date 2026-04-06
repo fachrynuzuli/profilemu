@@ -155,6 +155,9 @@ const Dashboard = () => {
           display_name: profile.display_name,
           bio: profile.bio,
           slug: profile.slug,
+          greeting_message: profile.greeting_message,
+          tone: profile.tone,
+          response_length: profile.response_length,
         })
         .eq("user_id", user.id);
 
