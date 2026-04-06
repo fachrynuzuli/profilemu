@@ -306,6 +306,7 @@ ${contextParts.join('\n')}
     return new Response(
       JSON.stringify({
         response: aiResponse,
+        conversationId: activeConversationId,
         profile: { display_name: profile.display_name, bio: profile.bio, avatar_url: profile.avatar_url }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
