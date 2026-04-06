@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
 import { Send, Bot, User, Loader2 } from "lucide-react";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -21,19 +23,30 @@ export function LiveDemoChat() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { sendStreamingMessage, streamingContent, isStreaming } = useStreamingChat({
+    slug: DEMO_SLUG,
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, I'm having trouble responding right now. Please try again!" },
+      ]);
+    },
+  });
 
   useEffect(() => {
     fetchProfile();
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length > 1 || streamingContent) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [messages, streamingContent]);
 
   const fetchProfile = async () => {
     try {
@@ -61,42 +74,25 @@ export function LiveDemoChat() {
   };
 
   const sendMessage = async () => {
-    if (!inputValue.trim() || isSending) return;
+    if (!inputValue.trim() || isStreaming) return;
 
     const userMessage = inputValue.trim();
     setInputValue("");
-    setIsSending(true);
 
     const newMessages: Message[] = [...messages, { role: "user", content: userMessage }];
     setMessages(newMessages);
 
-    try {
-      const conversationHistory = newMessages.slice(1).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+    const conversationHistory = newMessages.slice(1).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
-      const { data, error } = await supabase.functions.invoke("chat-with-twin", {
-        body: {
-          slug: DEMO_SLUG,
-          message: userMessage,
-          conversationHistory: conversationHistory.slice(0, -1),
-        },
-      });
+    const result = await sendStreamingMessage(userMessage, conversationHistory.slice(0, -1));
 
-      if (error) throw error;
-
-      setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Sorry, I'm having trouble responding right now. Please try again!" },
-      ]);
-    } finally {
-      setIsSending(false);
-      inputRef.current?.focus();
+    if (result) {
+      setMessages((prev) => [...prev, { role: "assistant", content: result }]);
     }
+    inputRef.current?.focus();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -172,16 +168,24 @@ export function LiveDemoChat() {
           </div>
         ))}
 
-        {isSending && (
+        {/* Streaming message */}
+        {isStreaming && (
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full gradient-hero flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4 text-primary-foreground" />
             </div>
-            <div className="bg-card border border-border rounded-2xl rounded-tl-sm p-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Thinking...</span>
-              </div>
+            <div className="max-w-[80%] bg-card border border-border rounded-2xl rounded-tl-sm p-3">
+              {streamingContent ? (
+                <div className="relative">
+                  <RichText content={streamingContent} className="text-sm" />
+                  <span className="inline-block w-1.5 h-4 bg-primary/60 rounded-full animate-pulse ml-0.5 align-text-bottom" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Thinking...</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -199,7 +203,7 @@ export function LiveDemoChat() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            disabled={isSending}
+            disabled={isStreaming}
             className="flex-1 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
           />
           <Button
@@ -207,7 +211,7 @@ export function LiveDemoChat() {
             size="icon"
             className="w-12 h-12 rounded-xl"
             onClick={sendMessage}
-            disabled={!inputValue.trim() || isSending}
+            disabled={!inputValue.trim() || isStreaming}
           >
             <Send className="w-5 h-5" />
           </Button>

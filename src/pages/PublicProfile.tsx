@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { RichText } from "@/components/ui/rich-text";
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, ArrowLeft, User, Loader2 } from "lucide-react";
 import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
@@ -36,7 +37,13 @@ const PublicProfile = () => {
   const [notFound, setNotFound] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  
+  const { sendStreamingMessage, streamingContent, isStreaming } = useStreamingChat({
+    slug: slug || "",
+    onError: () => {
+      toast({ variant: "destructive", title: "Error", description: "Failed to get a response. Please try again." });
+    },
+  });
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(true);
   
@@ -51,7 +58,7 @@ const PublicProfile = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, streamingContent]);
 
   const fetchProfile = async () => {
     try {
@@ -112,48 +119,28 @@ const PublicProfile = () => {
 
   const sendMessage = async (messageText?: string) => {
     const message = messageText || inputValue.trim();
-    if (!message || isSending) return;
+    if (!message || isStreaming) return;
 
     setInputValue("");
-    setIsSending(true);
-    setShowSuggestions(false); // Hide suggestions after first message
+    setShowSuggestions(false);
 
-    // Add user message to chat
     const newMessages: Message[] = [...messages, { role: 'user', content: message }];
     setMessages(newMessages);
 
-    try {
-      // Prepare conversation history (excluding the welcome message for cleaner context)
-      const conversationHistory = newMessages.slice(1).map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+    const conversationHistory = newMessages.slice(1).map(m => ({
+      role: m.role,
+      content: m.content
+    }));
 
-      const { data, error } = await supabase.functions.invoke('chat-with-twin', {
-        body: {
-          slug,
-          message: message,
-          conversationHistory: conversationHistory.slice(0, -1) // Exclude the message we just added
-        }
-      });
+    const result = await sendStreamingMessage(message, conversationHistory.slice(0, -1));
 
-      if (error) throw error;
-
-      // Add AI response
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error: any) {
-      console.error('Error sending message:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to get a response. Please try again."
-      });
-      // Remove the user message if we failed
+    if (result) {
+      setMessages(prev => [...prev, { role: 'assistant', content: result }]);
+    } else if (!result) {
+      // Remove user message on failure
       setMessages(messages);
-    } finally {
-      setIsSending(false);
-      inputRef.current?.focus();
     }
+    inputRef.current?.focus();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -294,14 +281,22 @@ const PublicProfile = () => {
               </div>
             </div>
           ))}
-          
-          {isSending && (
+
+          {/* Streaming message */}
+          {isStreaming && (
             <div className="flex justify-start animate-fade-in">
-              <div className="bg-card border border-border/50 shadow-card rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Thinking...</span>
-                </div>
+              <div className="max-w-[80%] md:max-w-[70%] bg-card border border-border/50 shadow-card rounded-2xl rounded-bl-md px-4 py-3">
+                {streamingContent ? (
+                  <div className="relative">
+                    <RichText content={streamingContent} className="text-sm md:text-base" />
+                    <span className="inline-block w-1.5 h-4 bg-primary/60 rounded-full animate-pulse ml-0.5 align-text-bottom" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm">Thinking...</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -318,12 +313,12 @@ const PublicProfile = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Ask ${profile?.display_name || 'them'} anything...`}
-              disabled={isSending}
+              disabled={isStreaming}
               className="flex-1"
             />
             <Button 
               onClick={() => sendMessage()} 
-              disabled={!inputValue.trim() || isSending}
+              disabled={!inputValue.trim() || isStreaming}
               size="icon"
               className="shrink-0"
             >
