@@ -78,7 +78,7 @@ serve(async (req) => {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, display_name, bio, avatar_url, user_id')
+      .select('id, display_name, bio, avatar_url, user_id, greeting_message, tone, response_length')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
