@@ -313,12 +313,12 @@ const PublicProfile = () => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Ask ${profile?.display_name || 'them'} anything...`}
-              disabled={isSending}
+              disabled={isStreaming}
               className="flex-1"
             />
             <Button 
               onClick={() => sendMessage()} 
-              disabled={!inputValue.trim() || isSending}
+              disabled={!inputValue.trim() || isStreaming}
               size="icon"
               className="shrink-0"
             >
