@@ -290,7 +290,11 @@ const PublicProfile = () => {
                 {msg.role === 'user' ? (
                   <p className="text-sm md:text-base whitespace-pre-wrap">{msg.content}</p>
                 ) : (
-                  <RichText content={msg.content} className="text-sm md:text-base" />
+                  {index === messages.length - 1 && index > 0 ? (
+                    <TypingText content={msg.content} className="text-sm md:text-base" />
+                  ) : (
+                    <RichText content={msg.content} className="text-sm md:text-base" />
+                  )}
                 )}
               </div>
             </div>

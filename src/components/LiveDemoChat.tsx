@@ -168,6 +168,8 @@ export function LiveDemoChat() {
             >
               {message.role === "user" ? (
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              ) : index === messages.length - 1 && index > 0 ? (
+                <TypingText content={message.content} className="text-sm" />
               ) : (
                 <RichText content={message.content} className="text-sm" />
               )}
