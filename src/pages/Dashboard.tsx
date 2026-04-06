@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
+import { ConversationHistory } from "@/components/dashboard/ConversationHistory";
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
 import { SocialScraper } from "@/components/dashboard/SocialScraper";
@@ -396,10 +397,14 @@ const Dashboard = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="knowledge" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
               <TabsTrigger value="knowledge" className="gap-2">
                 <Brain className="w-4 h-4" />
                 <span className="hidden sm:inline">Knowledge</span>
+              </TabsTrigger>
+              <TabsTrigger value="conversations" className="gap-2">
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Chats</span>
               </TabsTrigger>
               <TabsTrigger value="profile" className="gap-2">
                 <Settings className="w-4 h-4" />
@@ -577,6 +582,11 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Conversations Tab */}
+            <TabsContent value="conversations" className="space-y-6">
+              <ConversationHistory profileId={profile?.id} />
             </TabsContent>
 
             {/* Profile Settings Tab */}
