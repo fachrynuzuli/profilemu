@@ -35,6 +35,11 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
   const [urls, setUrls] = useState<string[]>(['']);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ScrapeResult[] | null>(null);
+  
+  // Paste text state
+  const [pasteText, setPasteText] = useState("");
+  const [isParsing, setIsParsing] = useState(false);
+  const [parseResults, setParseResults] = useState<Array<{ title: string; category: string }> | null>(null);
 
   const addUrl = () => {
     if (urls.length < 5) {
