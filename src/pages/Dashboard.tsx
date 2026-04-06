@@ -44,6 +44,9 @@ interface Profile {
   is_published: boolean;
   slug: string | null;
   avatar_url: string | null;
+  greeting_message: string | null;
+  tone: string | null;
+  response_length: string | null;
 }
 
 interface AIContext {
