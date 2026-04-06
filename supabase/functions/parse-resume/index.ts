@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import mammoth from "https://esm.sh/mammoth@1.6.0";
-import * as pdfjs from "https://esm.sh/pdfjs-dist@4.0.379/build/pdf.min.mjs";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,13 +13,21 @@ interface ExtractedContent {
   content: string;
 }
 
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Get authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -33,7 +40,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Verify user
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
@@ -44,7 +50,6 @@ serve(async (req) => {
       );
     }
 
-    // Parse form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
     
@@ -55,7 +60,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate file type
     const validTypes = ['application/pdf', 'text/plain', 'application/msword', 
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     
@@ -66,22 +70,19 @@ serve(async (req) => {
       );
     }
 
-    // Read file content
     const fileBuffer = await file.arrayBuffer();
     let textContent = '';
+    let isPdf = false;
 
     console.log('Processing resume/document for user:', user.id);
     console.log('File type:', file.type, 'Size:', file.size);
 
-    // Parse based on file type
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-      // Plain text - direct decode
       textContent = new TextDecoder().decode(fileBuffer);
       console.log('TXT extracted, length:', textContent.length);
       
     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
                || file.name.endsWith('.docx')) {
-      // DOCX - use mammoth to extract text
       try {
         const result = await mammoth.extractRawText({ arrayBuffer: fileBuffer });
         textContent = result.value;
@@ -95,59 +96,30 @@ serve(async (req) => {
       }
       
     } else if (file.type === 'application/pdf') {
-      // PDF - use pdfjs-dist for extraction
-      try {
-        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(fileBuffer) });
-        const pdf = await loadingTask.promise;
-        const textParts: string[] = [];
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          const pageText = content.items
-            .map((item: any) => item.str)
-            .join(' ');
-          textParts.push(pageText);
-        }
-        
-        textContent = textParts.join('\n\n');
-        console.log('PDF extracted, pages:', pdf.numPages, 'length:', textContent.length);
-      } catch (pdfError) {
-        console.error('PDF parsing error:', pdfError);
-        return new Response(
-          JSON.stringify({ success: false, error: 'Failed to parse PDF. It may be encrypted or corrupted.' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      isPdf = true;
+      console.log('PDF detected, will use AI vision for extraction');
       
     } else if (file.type === 'application/msword' || file.name.endsWith('.doc')) {
-      // Old DOC format not supported
       return new Response(
         JSON.stringify({ success: false, error: 'Old .doc format is not supported. Please save as .docx or PDF and try again.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate extracted content
-    if (textContent.length < 50) {
+    // Validate extracted content (skip for PDF which uses AI directly)
+    if (!isPdf && textContent.length < 50) {
       return new Response(
         JSON.stringify({ success: false, error: 'Could not extract text from this file. It may be scanned/image-based. Please try a text-based document.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Extracted text preview:', textContent.substring(0, 300));
-
-    // Use Lovable AI to extract structured information
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const extractionPrompt = `Analyze this resume/profile content and extract professional information into structured categories.
-
-DOCUMENT CONTENT:
-${textContent.substring(0, 10000)}
+    const extractionInstruction = `Analyze this resume/profile content and extract professional information into structured categories.
 
 Extract and return a JSON array with the following structure. Each item should have:
 - category: one of "bio", "career", "skills", "projects", "expertise_areas"
@@ -170,6 +142,39 @@ Return ONLY a valid JSON array. Example format:
 
 Extract as much relevant information as possible. If a category has no relevant content, skip it.`;
 
+    let messages: any[];
+
+    if (isPdf) {
+      // For PDFs, send as base64 to a vision-capable model
+      const base64Data = arrayBufferToBase64(fileBuffer);
+      messages = [
+        { role: 'system', content: 'You are an expert at parsing resumes and extracting structured professional information. Always return valid JSON arrays only.' },
+        { 
+          role: 'user', 
+          content: [
+            {
+              type: 'file',
+              file: {
+                filename: file.name,
+                file_data: `data:application/pdf;base64,${base64Data}`
+              }
+            },
+            {
+              type: 'text',
+              text: extractionInstruction
+            }
+          ]
+        }
+      ];
+    } else {
+      messages = [
+        { role: 'system', content: 'You are an expert at parsing resumes and extracting structured professional information. Always return valid JSON arrays only.' },
+        { role: 'user', content: `${extractionInstruction}\n\nDOCUMENT CONTENT:\n${textContent.substring(0, 10000)}` }
+      ];
+    }
+
+    console.log('Sending to AI for extraction, isPdf:', isPdf);
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -178,10 +183,7 @@ Extract as much relevant information as possible. If a category has no relevant 
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: 'You are an expert at parsing resumes and extracting structured professional information. Always return valid JSON arrays only.' },
-          { role: 'user', content: extractionPrompt }
-        ],
+        messages,
         temperature: 0.3,
         max_tokens: 4000,
       }),
@@ -206,11 +208,9 @@ Extract as much relevant information as possible. If a category has no relevant 
 
     console.log('AI extraction response received');
 
-    // Parse the JSON from AI response
     let extractedItems: ExtractedContent[] = [];
     
     try {
-      // Try to extract JSON from the response
       const jsonMatch = aiContent.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         extractedItems = JSON.parse(jsonMatch[0]);
@@ -219,17 +219,15 @@ Extract as much relevant information as possible. If a category has no relevant 
       console.error('Failed to parse AI response as JSON:', parseError);
       console.log('AI content:', aiContent.substring(0, 500));
       
-      // Fallback: create a single entry with the extracted content
-      if (textContent.length > 100) {
+      if ((textContent || aiContent).length > 100) {
         extractedItems = [{
           category: 'bio',
           title: 'Resume Content',
-          content: textContent.substring(0, 3000)
+          content: (textContent || aiContent).substring(0, 3000)
         }];
       }
     }
 
-    // Validate and filter extracted items
     const validCategories = ['bio', 'career', 'skills', 'projects', 'expertise_areas', 'writing_style', 'personality'];
     extractedItems = extractedItems.filter(item => 
       item.category && 
@@ -239,7 +237,6 @@ Extract as much relevant information as possible. If a category has no relevant 
       item.content.length > 20
     );
 
-    // Save each extracted piece to ai_context
     const savedItems: ExtractedContent[] = [];
     
     for (const item of extractedItems) {
@@ -249,7 +246,7 @@ Extract as much relevant information as possible. If a category has no relevant 
           user_id: user.id,
           category: item.category,
           title: item.title,
-          content: item.content.substring(0, 5000) // Limit content size
+          content: item.content.substring(0, 5000)
         });
 
       if (insertError) {
