@@ -28,7 +28,7 @@ serve(async (req) => {
     // Get user_id from profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('user_id')
+      .select('user_id, greeting_message')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -56,7 +56,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ contexts: contexts || [] }),
+      JSON.stringify({ contexts: contexts || [], greeting_message: profile.greeting_message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

@@ -44,6 +44,9 @@ interface Profile {
   is_published: boolean;
   slug: string | null;
   avatar_url: string | null;
+  greeting_message: string | null;
+  tone: string | null;
+  response_length: string | null;
 }
 
 interface AIContext {
@@ -152,6 +155,9 @@ const Dashboard = () => {
           display_name: profile.display_name,
           bio: profile.bio,
           slug: profile.slug,
+          greeting_message: profile.greeting_message,
+          tone: profile.tone,
+          response_length: profile.response_length,
         })
         .eq("user_id", user.id);
 
@@ -646,6 +652,61 @@ const Dashboard = () => {
                       rows={3}
                     />
                   </div>
+
+                  {/* Divider */}
+                  <div className="pt-4 border-t border-border/50">
+                    <h3 className="font-display text-lg mb-1 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      AI Twin Personality
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Customize how your AI twin greets visitors and responds.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="greeting">Custom Greeting</Label>
+                    <Textarea
+                      id="greeting"
+                      value={profile?.greeting_message || ""}
+                      onChange={(e) => setProfile(profile ? {...profile, greeting_message: e.target.value} : null)}
+                      placeholder={`e.g. Hey! I'm ${profile?.display_name || 'here'}'s AI twin. Ask me about product strategy, design, or my career journey!`}
+                      rows={2}
+                    />
+                    <p className="text-xs text-muted-foreground">Leave blank for auto-generated greeting.</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tone">Conversation Tone</Label>
+                      <select
+                        id="tone"
+                        value={profile?.tone || "friendly"}
+                        onChange={(e) => setProfile(profile ? {...profile, tone: e.target.value} : null)}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+                      >
+                        <option value="professional">Professional</option>
+                        <option value="friendly">Friendly</option>
+                        <option value="casual">Casual</option>
+                        <option value="witty">Witty & Playful</option>
+                        <option value="academic">Academic</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="responseLength">Response Length</Label>
+                      <select
+                        id="responseLength"
+                        value={profile?.response_length || "balanced"}
+                        onChange={(e) => setProfile(profile ? {...profile, response_length: e.target.value} : null)}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-background text-foreground"
+                      >
+                        <option value="concise">Concise (1-2 sentences)</option>
+                        <option value="balanced">Balanced (a short paragraph)</option>
+                        <option value="detailed">Detailed (thorough explanations)</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <Button onClick={handleUpdateProfile} disabled={isSaving} className="gap-2">
                     <Save className="w-4 h-4" />
                     {isSaving ? "Saving..." : "Save Profile"}

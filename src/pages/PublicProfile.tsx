@@ -114,21 +114,26 @@ const PublicProfile = () => {
             .map((c: ContextItem) => c.title);
           setExpertiseTags(areas);
         }
+
+        // Use custom greeting or generate default
+        const customGreeting = contextData?.greeting_message;
+        const greetingText = customGreeting
+          || `Hi! I'm ${profileData.display_name || "here"}'s AI twin. ${profileData.bio ? profileData.bio + " " : ""}Feel free to ask me anything!`;
+
+        setMessages([{ role: "assistant", content: greetingText }]);
       } catch {
         setSuggestedQuestions([
           `What does ${profileData.display_name || "this person"} specialize in?`,
           `Tell me about ${profileData.display_name || "their"}'s background`,
           `How can ${profileData.display_name || "they"} help me?`,
         ]);
-      }
 
-      // Welcome message
-      setMessages([
-        {
+        // Default greeting on error
+        setMessages([{
           role: "assistant",
           content: `Hi! I'm ${profileData.display_name || "here"}'s AI twin. ${profileData.bio ? profileData.bio + " " : ""}Feel free to ask me anything!`,
-        },
-      ]);
+        }]);
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       setNotFound(true);

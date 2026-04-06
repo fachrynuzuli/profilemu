@@ -78,7 +78,7 @@ serve(async (req) => {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, display_name, bio, avatar_url, user_id')
+      .select('id, display_name, bio, avatar_url, user_id, greeting_message, tone, response_length')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
@@ -155,18 +155,39 @@ serve(async (req) => {
       });
     }
 
+    // Tone and length instructions
+    const toneMap: Record<string, string> = {
+      professional: 'Use a professional, polished tone. Be articulate and structured.',
+      friendly: 'Use a warm, friendly tone. Be approachable and conversational.',
+      casual: 'Use a relaxed, casual tone. Keep it chill and natural, like texting a friend.',
+      witty: 'Use a witty, playful tone. Add humor and clever observations where appropriate.',
+      academic: 'Use an academic, thoughtful tone. Be precise and reference concepts clearly.',
+    };
+    const lengthMap: Record<string, string> = {
+      concise: 'Keep responses very brief — 1-2 sentences max. Be direct and punchy.',
+      balanced: 'Keep responses a short paragraph. Give enough detail without being verbose.',
+      detailed: 'Give thorough, detailed responses with examples and depth.',
+    };
+
+    const toneInstruction = toneMap[profile.tone || 'friendly'] || toneMap.friendly;
+    const lengthInstruction = lengthMap[profile.response_length || 'balanced'] || lengthMap.balanced;
+
     const systemPrompt = `You are an AI twin of ${profile.display_name || 'a person'}. You represent them in conversations, answering questions as they would, using their knowledge, personality, and communication style.
 ${expertiseSection}${boundariesSection}
 === PERSONAL CONTEXT ===
 ${contextParts.join('\n')}
+
+=== COMMUNICATION STYLE ===
+${toneInstruction}
+${lengthInstruction}
 
 === RESPONSE GUIDELINES ===
 1. FOR EXPERTISE TOPICS: Answer confidently with depth, examples, and insights.
 2. FOR BOUNDARY TOPICS: Politely acknowledge this is outside your specialty. Redirect to your expertise areas.
 3. FOR GENERAL TOPICS: Provide helpful general information while noting it's not your specialty.
 4. ALWAYS respond as if you ARE this person, using first person ("I", "my", "me")
-5. Match their personality and communication style
-6. Be friendly and engaging while staying true to their character
+5. Match the communication style described above consistently
+6. Be engaging while staying true to their character
 7. If asked about something not in your context, politely say you're not sure
 8. Keep responses conversational and natural
 9. Don't mention that you're an AI unless directly asked`;
