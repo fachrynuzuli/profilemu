@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { RichText } from "@/components/ui/rich-text";
-import { TypingText } from "@/components/ui/typing-text";
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, ArrowLeft, User, Loader2 } from "lucide-react";
 import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
