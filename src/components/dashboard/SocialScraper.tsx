@@ -209,8 +209,12 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs defaultValue="resume" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="paste" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="paste" className="gap-2">
+              <ClipboardPaste className="w-4 h-4" />
+              Paste Text
+            </TabsTrigger>
             <TabsTrigger value="resume" className="gap-2">
               <FileText className="w-4 h-4" />
               Resume/PDF
@@ -220,6 +224,56 @@ export function SocialScraper({ onComplete }: SocialScraperProps) {
               Website
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="paste" className="mt-4 space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Paste your bio, LinkedIn summary, resume text, or any professional description. AI will automatically categorize it.
+            </p>
+            <Textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder={"Paste your bio, LinkedIn About section, resume summary, or any text that describes you professionally...\n\nExample:\nI'm a product designer with 8 years of experience in fintech and SaaS. I specialize in design systems, user research, and prototyping..."}
+              rows={6}
+              disabled={isParsing}
+              className="resize-none"
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {pasteText.length.toLocaleString()} / 20,000 characters
+              </span>
+              <Button
+                onClick={handleParseText}
+                disabled={isParsing || pasteText.trim().length < 10}
+                className="gap-2"
+              >
+                {isParsing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    AI is categorizing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Import with AI
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {parseResults && parseResults.length > 0 && (
+              <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Imported {parseResults.length} entries</span>
+                </div>
+                {parseResults.map((item, i) => (
+                  <div key={i} className="text-sm text-muted-foreground">
+                    ✓ {item.title} <span className="text-xs opacity-60">({item.category})</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
           
           <TabsContent value="resume" className="mt-4">
             <ResumeUpload onComplete={onComplete} />
