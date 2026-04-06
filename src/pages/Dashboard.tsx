@@ -14,6 +14,7 @@ import { ConversationHistory } from "@/components/dashboard/ConversationHistory"
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
 import { SocialScraper } from "@/components/dashboard/SocialScraper";
+import { EmbedCodeCard } from "@/components/dashboard/EmbedCodeCard";
 import { 
   MessageCircle,
   LogOut, 
