@@ -584,6 +584,11 @@ const Dashboard = () => {
               </Card>
             </TabsContent>
 
+            {/* Conversations Tab */}
+            <TabsContent value="conversations" className="space-y-6">
+              <ConversationHistory profileId={profile?.id} />
+            </TabsContent>
+
             {/* Profile Settings Tab */}
             <TabsContent value="profile" className="space-y-6">
               <Card variant="elevated">
