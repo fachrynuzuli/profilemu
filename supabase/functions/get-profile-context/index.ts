@@ -56,7 +56,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ contexts: contexts || [] }),
+      JSON.stringify({ contexts: contexts || [], greeting_message: profile.greeting_message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
