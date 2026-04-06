@@ -28,7 +28,7 @@ serve(async (req) => {
     // Get user_id from profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('user_id')
+      .select('user_id, greeting_message')
       .eq('slug', slug)
       .eq('is_published', true)
       .single();
