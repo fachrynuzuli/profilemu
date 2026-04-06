@@ -119,48 +119,28 @@ const PublicProfile = () => {
 
   const sendMessage = async (messageText?: string) => {
     const message = messageText || inputValue.trim();
-    if (!message || isSending) return;
+    if (!message || isStreaming) return;
 
     setInputValue("");
-    setIsSending(true);
-    setShowSuggestions(false); // Hide suggestions after first message
+    setShowSuggestions(false);
 
-    // Add user message to chat
     const newMessages: Message[] = [...messages, { role: 'user', content: message }];
     setMessages(newMessages);
 
-    try {
-      // Prepare conversation history (excluding the welcome message for cleaner context)
-      const conversationHistory = newMessages.slice(1).map(m => ({
-        role: m.role,
-        content: m.content
-      }));
+    const conversationHistory = newMessages.slice(1).map(m => ({
+      role: m.role,
+      content: m.content
+    }));
 
-      const { data, error } = await supabase.functions.invoke('chat-with-twin', {
-        body: {
-          slug,
-          message: message,
-          conversationHistory: conversationHistory.slice(0, -1) // Exclude the message we just added
-        }
-      });
+    const result = await sendStreamingMessage(message, conversationHistory.slice(0, -1));
 
-      if (error) throw error;
-
-      // Add AI response
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-    } catch (error: any) {
-      console.error('Error sending message:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to get a response. Please try again."
-      });
-      // Remove the user message if we failed
+    if (result) {
+      setMessages(prev => [...prev, { role: 'assistant', content: result }]);
+    } else if (!result) {
+      // Remove user message on failure
       setMessages(messages);
-    } finally {
-      setIsSending(false);
-      inputRef.current?.focus();
     }
+    inputRef.current?.focus();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
