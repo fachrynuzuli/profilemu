@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnalyticsCard from "@/components/dashboard/AnalyticsCard";
+import { ConversationHistory } from "@/components/dashboard/ConversationHistory";
 import { ExpertiseWizard } from "@/components/dashboard/ExpertiseWizard";
 import { AvatarUpload } from "@/components/dashboard/AvatarUpload";
 import { SocialScraper } from "@/components/dashboard/SocialScraper";
