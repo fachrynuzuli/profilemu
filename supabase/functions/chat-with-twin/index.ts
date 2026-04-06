@@ -89,19 +89,31 @@ serve(async (req) => {
     }
 
     // Track conversation
-    const conversationId = body.conversationId;
-    if (conversationId) {
+    let activeConversationId = body.conversationId;
+    if (activeConversationId) {
       await supabase.from('conversations').update({
         messages_count: (conversationHistory?.length || 0) + 2,
         last_message_at: new Date().toISOString()
-      }).eq('id', conversationId);
+      }).eq('id', activeConversationId);
     } else {
       const visitorId = clientIP.replace(/\./g, '-');
       const { data: newConversation } = await supabase
         .from('conversations')
         .insert({ profile_id: profile.id, visitor_id: visitorId, messages_count: 1 })
         .select('id').single();
-      if (newConversation) console.log('New conversation created:', newConversation.id);
+      if (newConversation) {
+        activeConversationId = newConversation.id;
+        console.log('New conversation created:', newConversation.id);
+      }
+    }
+
+    // Save user message
+    if (activeConversationId) {
+      await supabase.from('messages').insert({
+        conversation_id: activeConversationId,
+        role: 'user',
+        content: message,
+      });
     }
 
     const { data: contexts, error: contextError } = await supabase
