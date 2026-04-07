@@ -369,7 +369,7 @@ function embedStyles(position: string) {
       max-width: 78%;
       padding: 10px 14px;
       border-radius: 16px;
-      font-size: 13px;
+      font-size: 16px;
       line-height: 1.5;
       word-break: break-word;
     }
@@ -384,7 +384,7 @@ function embedStyles(position: string) {
       border: 1px solid #e5e5e5;
       border-bottom-left-radius: 4px;
     }
-    .embed-thinking { display: flex; align-items: center; gap: 6px; color: #999; font-size: 13px; }
+    .embed-thinking { display: flex; align-items: center; gap: 6px; color: #999; font-size: 16px; }
     .embed-input-area {
       padding: 12px 16px;
       background: #fff;
@@ -398,7 +398,7 @@ function embedStyles(position: string) {
       border: 1px solid #e0e0e0;
       border-radius: 24px;
       padding: 8px 16px;
-      font-size: 13px;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.15s;
       background: #fafafa;
@@ -468,7 +468,7 @@ function embedStyles(position: string) {
       border: 2px solid #fff;
     }
     /* Markdown inside bubbles */
-    .embed-bubble .prose { font-size: 13px; }
+    .embed-bubble .prose { font-size: 16px; }
     .embed-bubble .prose p { margin-bottom: 4px; }
     .embed-bubble .prose p:last-child { margin-bottom: 0; }
     .embed-bubble .prose ul, .embed-bubble .prose ol { margin: 4px 0; padding-left: 16px; }
