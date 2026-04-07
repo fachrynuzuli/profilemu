@@ -135,7 +135,7 @@ const PublicProfile = () => {
         }]);
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      if (import.meta.env.DEV) console.error("Error fetching profile:", error);
       setNotFound(true);
     } finally {
       setLoading(false);
