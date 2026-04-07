@@ -1,73 +1,37 @@
-# Welcome to your Lovable project
+# Profile.Mu — Your AI Twin, Always On
 
-## Project info
+Profile.Mu lets professionals create an **AI-powered digital twin** that knows their background, expertise, and personality — so visitors can have real conversations with "you" anytime, anywhere.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What It Does
 
-## How can I edit this code?
+- **AI Twin Chat** — Visitors chat with your AI twin on your public profile page. It responds in your voice, using context from your resume, bio, and knowledge base.
+- **Resume & Text Import** — Paste your LinkedIn summary, bio, or resume text and AI automatically categorizes it into structured profile context.
+- **Knowledge Management** — Add, edit, and organize expertise areas, work history, and talking points that shape how your twin responds.
+- **Embeddable Widget** — Drop a `<script>` or `<iframe>` snippet on any website to let visitors chat with your AI twin outside Profile.Mu.
+- **Conversation History** — See what visitors are asking, review full chat transcripts, and track engagement analytics.
+- **Personality Tuning** — Customize greeting messages, tone (professional / friendly / casual), and response length.
+- **Social Auth** — Sign in with Google, Apple, or email.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend** — React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Backend** — Lovable Cloud (Supabase) for auth, database, edge functions, and file storage
+- **AI** — Streaming chat responses via edge functions with configurable model support
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting Started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+cd profile-mu
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Deploy
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Open [Lovable](https://lovable.dev/projects/bc32105f-3db0-418b-ab39-12705f3e4c08) and click **Share → Publish**.
 
-**Use GitHub Codespaces**
+## Custom Domain
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Navigate to **Project → Settings → Domains → Connect Domain**.  
+Docs: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)

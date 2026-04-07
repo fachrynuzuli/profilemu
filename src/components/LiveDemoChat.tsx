@@ -204,7 +204,7 @@ export function LiveDemoChat() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isStreaming}
-            className="flex-1 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
+            className="flex-1 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
           />
           <Button
             variant="hero"
