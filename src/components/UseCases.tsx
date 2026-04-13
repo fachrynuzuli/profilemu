@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Briefcase, Users, Heart, Star } from "lucide-react";
+import { useInView } from "@/hooks/useInView";
 
 const useCases = [
   {
@@ -33,10 +34,20 @@ const useCases = [
 ];
 
 export function UseCases() {
+  const { ref: headerRef, isInView: headerVisible } = useInView();
+  const { ref: gridRef, isInView: gridVisible } = useInView({ threshold: 0.1 });
+
   return (
-    <section id="use-cases" className="py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+    <section id="use-cases" className="py-24 relative">
+      <div className="absolute inset-0 gradient-mesh opacity-20" />
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-700 ${
+            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           <h2 className="font-display text-4xl md:text-5xl mb-4">
             Endless <span className="text-gradient">Possibilities</span>
           </h2>
@@ -45,18 +56,21 @@ export function UseCases() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div ref={gridRef} className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {useCases.map((useCase, index) => (
             <Card 
               key={index} 
               variant="glass"
-              className="group overflow-hidden"
+              className={`group overflow-hidden transition-all duration-700 ${
+                gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
+              style={{ transitionDelay: gridVisible ? `${index * 100}ms` : "0ms" }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${useCase.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
               
               <CardContent className="p-8 relative z-10">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center shadow-soft shrink-0">
+                  <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center shadow-soft shrink-0 min-w-[48px] min-h-[48px]">
                     <useCase.icon className="w-6 h-6 text-primary-foreground" />
                   </div>
                   
