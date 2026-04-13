@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus, Brain, Globe, MessageCircle } from "lucide-react";
+import { useInView } from "@/hooks/useInView";
 
 const steps = [
   {
@@ -29,12 +30,21 @@ const steps = [
 ];
 
 export function HowItWorks() {
+  const { ref: headerRef, isInView: headerVisible } = useInView();
+  const { ref: gridRef, isInView: gridVisible } = useInView({ threshold: 0.1 });
+
   return (
-    <section id="how-it-works" className="py-24 relative">
-      <div className="absolute inset-0 gradient-mesh opacity-30" />
+    <section id="how-it-works" className="py-24 relative bg-muted/20">
+      {/* Decorative top divider */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-700 ${
+            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           <h2 className="font-display text-4xl md:text-5xl mb-4">
             How <span className="text-gradient">Profile.Mu</span> Works
           </h2>
@@ -43,12 +53,17 @@ export function HowItWorks() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div ref={gridRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {steps.map((step, index) => (
             <Card 
               key={index} 
               variant="elevated"
-              className="group cursor-pointer"
+              className={`group cursor-pointer transition-all duration-700 ${
+                gridVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-10"
+              }`}
+              style={{ transitionDelay: gridVisible ? `${index * 120}ms` : "0ms" }}
             >
               <CardContent className="p-6 text-center">
                 <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300`}>
@@ -63,6 +78,9 @@ export function HowItWorks() {
           ))}
         </div>
       </div>
+
+      {/* Decorative bottom divider */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </section>
   );
 }
