@@ -203,7 +203,7 @@ const PublicProfile = () => {
   if (notFound) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
+        
         <Card
           variant="elevated"
           className="p-8 text-center max-w-md mx-4 relative z-10"
@@ -229,13 +229,13 @@ const PublicProfile = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Background */}
-      <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
+      
 
       {/* Minimal top bar */}
       <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/30">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-4xl">
           <Link to="/" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
-            <div className="w-6 h-6 rounded-md gradient-hero flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
               <MessageCircle className="w-3 h-3 text-primary-foreground" />
             </div>
             <span className="font-display text-sm">Profile.Mu</span>
@@ -256,14 +256,13 @@ const PublicProfile = () => {
       {/* ===== HERO SECTION ===== */}
       <section className="relative z-10 overflow-hidden">
         {/* Decorative glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] gradient-glow opacity-40 pointer-events-none" />
+        
 
         <div className="container mx-auto px-4 max-w-4xl pt-12 pb-10 md:pt-16 md:pb-14">
           <div className="flex flex-col items-center text-center animate-fade-in">
             {/* Avatar */}
             <div className="relative mb-6 group">
-              <div className="absolute -inset-2 rounded-full gradient-hero opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
-              <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full border-[3px] border-background shadow-glow overflow-hidden bg-muted">
+              <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full border-[3px] border-background shadow-lg-token overflow-hidden bg-muted">
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
@@ -311,7 +310,7 @@ const PublicProfile = () => {
             <Button
               onClick={scrollToChat}
               size="lg"
-              className="gap-2.5 rounded-full px-8 shadow-soft hover:shadow-glow transition-all duration-300 group"
+              className="gap-2.5 rounded-full px-8 transition-all duration-300 group"
             >
               <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
               Chat with {displayName.split(" ")[0]}'s AI Twin
@@ -379,7 +378,7 @@ const PublicProfile = () => {
                   className={`max-w-[80%] md:max-w-[70%] px-4 py-3 rounded-2xl ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-card border border-border/50 shadow-card rounded-bl-md"
+                      : "bg-card border border-border/50 rounded-bl-md"
                   }`}
                 >
                   {msg.role === "user" ? (
@@ -412,7 +411,7 @@ const PublicProfile = () => {
                     </div>
                   )}
                 </div>
-                <div className="max-w-[80%] md:max-w-[70%] bg-card border border-border/50 shadow-card rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="max-w-[80%] md:max-w-[70%] bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
                   {streamingContent ? (
                     <div className="relative">
                       <RichText
