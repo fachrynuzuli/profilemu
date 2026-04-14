@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export function Navbar() {
@@ -9,17 +8,14 @@ export function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div 
-          className="flex items-center gap-2 cursor-pointer"
+      <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+        <div
+          className="flex items-center gap-2 cursor-pointer select-none"
           onClick={() => navigate("/")}
         >
-          <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center shadow-soft">
-            <MessageCircle className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-display text-xl">Profile.Mu</span>
+          <span className="font-display text-xl font-bold tracking-tight">Profile.Mu</span>
         </div>
-        
+
         <nav className="hidden md:flex items-center gap-8">
           <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             How It Works
@@ -35,12 +31,20 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {!loading && (
             user ? (
-              <Button variant="hero" size="sm" onClick={() => navigate("/dashboard")}>
+              <Button
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium"
+              >
                 Dashboard
               </Button>
             ) : (
-              <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
-                Sign In
+              <Button
+                size="sm"
+                onClick={() => navigate("/auth")}
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 font-medium"
+              >
+                Sign in
               </Button>
             )
           )}

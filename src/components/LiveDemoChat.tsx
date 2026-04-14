@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStreamingChat } from "@/hooks/useStreamingChat";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { RichText } from "@/components/ui/rich-text";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -33,7 +31,7 @@ export function LiveDemoChat() {
     onError: () => {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I'm having trouble responding right now. Please try again!" },
+        { role: "assistant", content: "Sorry, I'm having trouble right now. Try again in a moment." },
       ]);
     },
   });
@@ -62,7 +60,7 @@ export function LiveDemoChat() {
         setMessages([
           {
             role: "assistant",
-            content: `Hi! I'm ${data.display_name || "Fachry"}'s AI twin. I can tell you about my background in product management, startups, and digital transformation. Ask me anything!`,
+            content: `Hey! I'm ${data.display_name || "Fachry"}. Ask me anything about product management, startups, or my work — I'll answer just like I would in person.`,
           },
         ]);
       }
@@ -95,72 +93,65 @@ export function LiveDemoChat() {
     inputRef.current?.focus();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
 
+  const displayName = profile?.display_name || "Fachry";
+
   if (isLoading) {
     return (
-      <Card variant="glass" className="overflow-hidden">
-        <div className="h-[450px] flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      <div className="rounded-2xl border border-border bg-background shadow-lg-token">
+        <div className="h-[480px] flex items-center justify-center">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card variant="glass" className="overflow-hidden">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-border/50 flex items-center gap-3">
+    <div className="rounded-2xl border border-border bg-background shadow-lg-token overflow-hidden">
+      {/* Header — feels like a messaging app */}
+      <div className="px-4 py-3 border-b border-border flex items-center gap-3">
         {profile?.avatar_url ? (
           <img
             src={profile.avatar_url}
-            alt={profile.display_name || "Profile"}
-            className="w-10 h-10 rounded-full object-cover"
+            alt={displayName}
+            className="w-9 h-9 rounded-full object-cover"
           />
         ) : (
-          <div className="w-10 h-10 rounded-full gradient-hero flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary-foreground" />
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
+            {displayName.charAt(0)}
           </div>
         )}
-        <div>
-          <div className="font-medium">{profile?.display_name || "Fachry"}'s AI Twin</div>
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            CEO of Profile.Mu
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{displayName}</div>
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Online now
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="p-4 h-[350px] overflow-y-auto space-y-4">
+      {/* Messages — iMessage-style, no robot icons */}
+      <div className="px-4 py-4 h-[380px] overflow-y-auto space-y-3">
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex items-start gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              className={`max-w-[85%] px-4 py-2.5 text-sm leading-relaxed ${
                 message.role === "user"
-                  ? "bg-secondary text-secondary-foreground"
-                  : "gradient-hero text-primary-foreground"
-              }`}
-            >
-              {message.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-            </div>
-            <div
-              className={`max-w-[80%] p-3 rounded-2xl ${
-                message.role === "user"
-                  ? "bg-secondary text-secondary-foreground rounded-tr-sm"
-                  : "bg-card border border-border rounded-tl-sm"
+                  ? "bg-foreground text-background rounded-[20px] rounded-br-md"
+                  : "bg-muted rounded-[20px] rounded-bl-md"
               }`}
             >
               {message.role === "user" ? (
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap">{message.content}</p>
               ) : (
                 <RichText content={message.content} className="text-sm" />
               )}
@@ -168,22 +159,20 @@ export function LiveDemoChat() {
           </div>
         ))}
 
-        {/* Streaming message */}
+        {/* Streaming */}
         {isStreaming && (
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full gradient-hero flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div className="max-w-[80%] bg-card border border-border rounded-2xl rounded-tl-sm p-3">
+          <div className="flex justify-start">
+            <div className="max-w-[85%] px-4 py-2.5 bg-muted rounded-[20px] rounded-bl-md">
               {streamingContent ? (
                 <div className="relative">
                   <RichText content={streamingContent} className="text-sm" />
-                  <span className="inline-block w-1.5 h-4 bg-primary/60 rounded-full animate-pulse ml-0.5 align-text-bottom" />
+                  <span className="inline-block w-0.5 h-4 bg-foreground/40 rounded-full animate-pulse ml-0.5 align-text-bottom" />
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Thinking...</span>
+                <div className="flex items-center gap-1.5 py-1">
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               )}
             </div>
@@ -193,30 +182,28 @@ export function LiveDemoChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-border/50">
+      {/* Input — clean, no gradient button */}
+      <div className="px-4 py-3 border-t border-border">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
             type="text"
-            placeholder={`Ask ${profile?.display_name || "Fachry"} anything...`}
+            placeholder={`Message ${displayName}...`}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             disabled={isStreaming}
-            className="flex-1 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
+            className="flex-1 bg-muted rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all disabled:opacity-50 placeholder:text-muted-foreground"
           />
-          <Button
-            variant="hero"
-            size="icon"
-            className="w-12 h-12 rounded-xl"
+          <button
             onClick={sendMessage}
             disabled={!inputValue.trim() || isStreaming}
+            className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-30 transition-opacity hover:opacity-90 shrink-0"
           >
-            <Send className="w-5 h-5" />
-          </Button>
+            <Send className="w-4 h-4" />
+          </button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
