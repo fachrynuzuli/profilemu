@@ -128,8 +128,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Background */}
-      <div className="fixed inset-0 gradient-mesh opacity-40 pointer-events-none" />
       
       {/* Header */}
       <header className="relative z-10 p-4">
@@ -145,9 +143,9 @@ const Auth = () => {
 
       {/* Auth Card */}
       <div className="flex-1 flex items-center justify-center p-4 relative z-10">
-        <Card variant="glass" className="w-full max-w-md">
+        <Card variant="default" className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-12 h-12 rounded-xl gradient-hero flex items-center justify-center shadow-soft">
+            <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-primary-foreground" />
             </div>
             <CardTitle className="text-2xl">
