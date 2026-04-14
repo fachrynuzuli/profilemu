@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   User,
   Loader2,
-  Sparkles,
   ArrowDown,
 } from "lucide-react";
 import { ShareProfileButton, ShareChatButton } from "@/components/ShareButtons";
@@ -94,7 +93,6 @@ const PublicProfile = () => {
         avatar_url: profileData.avatar_url,
       });
 
-      // Fetch AI context for suggested questions & expertise tags
       try {
         const { data: contextData } = await supabase.functions.invoke(
           "get-profile-context",
@@ -108,17 +106,15 @@ const PublicProfile = () => {
           );
           setSuggestedQuestions(questions);
 
-          // Extract expertise area titles for tags
           const areas = contextData.contexts
             .filter((c: ContextItem) => c.category === "expertise_areas")
             .map((c: ContextItem) => c.title);
           setExpertiseTags(areas);
         }
 
-        // Use custom greeting or generate default
         const customGreeting = contextData?.greeting_message;
         const greetingText = customGreeting
-          || `Hi! I'm ${profileData.display_name || "here"}'s AI twin. ${profileData.bio ? profileData.bio + " " : ""}Feel free to ask me anything!`;
+          || `Hey! I'm ${profileData.display_name || "here"}. ${profileData.bio ? profileData.bio + ". " : ""}Feel free to ask me anything!`;
 
         setMessages([{ role: "assistant", content: greetingText }]);
       } catch {
@@ -128,10 +124,9 @@ const PublicProfile = () => {
           `How can ${profileData.display_name || "they"} help me?`,
         ]);
 
-        // Default greeting on error
         setMessages([{
           role: "assistant",
-          content: `Hi! I'm ${profileData.display_name || "here"}'s AI twin. ${profileData.bio ? profileData.bio + " " : ""}Feel free to ask me anything!`,
+          content: `Hey! I'm ${profileData.display_name || "here"}. ${profileData.bio ? profileData.bio + ". " : ""}Feel free to ask me anything!`,
         }]);
       }
     } catch (error) {
@@ -192,9 +187,9 @@ const PublicProfile = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground flex items-center gap-2">
+        <div className="text-muted-foreground flex items-center gap-2">
           <Loader2 className="w-5 h-5 animate-spin" />
-          Loading...
+          <span className="text-sm">Loading profile...</span>
         </div>
       </div>
     );
@@ -203,20 +198,19 @@ const PublicProfile = () => {
   if (notFound) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        
         <Card
           variant="elevated"
-          className="p-8 text-center max-w-md mx-4 relative z-10"
+          className="p-8 text-center max-w-md mx-4"
         >
           <User className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <h1 className="font-display text-2xl mb-2">Profile Not Found</h1>
+          <h1 className="font-display text-2xl mb-2">Profile not found</h1>
           <p className="text-muted-foreground mb-6">
             This profile doesn't exist or hasn't been published yet.
           </p>
           <Link to="/">
             <Button variant="soft" className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Home
+              Back to home
             </Button>
           </Link>
         </Card>
@@ -225,14 +219,12 @@ const PublicProfile = () => {
   }
 
   const displayName = profile?.display_name || "AI Twin";
+  const firstName = displayName.split(" ")[0];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background */}
-      
-
       {/* Minimal top bar */}
-      <header className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/30">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-4xl">
           <Link to="/" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
             <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
@@ -254,14 +246,11 @@ const PublicProfile = () => {
       </header>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative z-10 overflow-hidden">
-        {/* Decorative glow */}
-        
-
+      <section className="relative z-10">
         <div className="container mx-auto px-4 max-w-4xl pt-12 pb-10 md:pt-16 md:pb-14">
-          <div className="flex flex-col items-center text-center animate-fade-in">
+          <div className="flex flex-col items-center text-center">
             {/* Avatar */}
-            <div className="relative mb-6 group">
+            <div className="relative mb-6">
               <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full border-[3px] border-background shadow-lg-token overflow-hidden bg-muted">
                 {profile?.avatar_url ? (
                   <img
@@ -280,7 +269,7 @@ const PublicProfile = () => {
             </div>
 
             {/* Name */}
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl mb-3 tracking-tight">
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl mb-3 tracking-tight text-foreground">
               {displayName}
             </h1>
 
@@ -310,11 +299,11 @@ const PublicProfile = () => {
             <Button
               onClick={scrollToChat}
               size="lg"
-              className="gap-2.5 rounded-full px-8 transition-all duration-300 group"
+              className="gap-2.5 rounded-full px-8 transition-all duration-200 group"
             >
-              <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-              Chat with {displayName.split(" ")[0]}'s AI Twin
-              <ArrowDown className="w-4 h-4 animate-bounce" />
+              <MessageCircle className="w-4 h-4" />
+              Chat with {firstName}
+              <ArrowDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
             </Button>
           </div>
         </div>
@@ -334,7 +323,7 @@ const PublicProfile = () => {
             <div>
               <h2 className="font-display text-xl">Ask me anything</h2>
               <p className="text-xs text-muted-foreground">
-                Powered by AI · Responds as {displayName}
+                Responds as {displayName}
               </p>
             </div>
           </div>
@@ -355,7 +344,7 @@ const PublicProfile = () => {
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""} animate-fade-in`}
+                className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
               >
                 {/* Avatar bubble */}
                 {msg.role === "assistant" && (
@@ -397,7 +386,7 @@ const PublicProfile = () => {
 
             {/* Streaming message */}
             {isStreaming && (
-              <div className="flex gap-3 animate-fade-in">
+              <div className="flex gap-3">
                 <div className="shrink-0 w-8 h-8 rounded-full overflow-hidden bg-primary/10 mt-0.5 border border-border/50">
                   {profile?.avatar_url ? (
                     <img
@@ -421,9 +410,10 @@ const PublicProfile = () => {
                       <span className="inline-block w-1.5 h-4 bg-primary/60 rounded-full animate-pulse ml-0.5 align-text-bottom" />
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Thinking...</span>
+                    <div className="flex items-center gap-1.5 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-pulse" style={{ animationDelay: "0.2s" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-pulse" style={{ animationDelay: "0.4s" }} />
                     </div>
                   )}
                 </div>
@@ -441,7 +431,7 @@ const PublicProfile = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={`Ask ${displayName.split(" ")[0]} anything...`}
+                placeholder={`Message ${firstName}...`}
                 disabled={isStreaming}
                 className="flex-1 rounded-full px-5 h-11 bg-card border-border/50"
               />
