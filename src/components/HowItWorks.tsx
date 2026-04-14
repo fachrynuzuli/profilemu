@@ -1,86 +1,67 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus, Brain, Globe, MessageCircle } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
 
 const steps = [
   {
-    icon: UserPlus,
-    title: "Share Your Context",
-    description: "Upload your knowledge, writing style, career history, and what makes you unique.",
-    color: "from-primary to-primary/60",
+    number: "01",
+    title: "Add your context",
+    description:
+      "Upload a resume, paste your bio, or connect your LinkedIn. The more you share, the more accurate your twin becomes.",
   },
   {
-    icon: Brain,
-    title: "AI Learns You",
-    description: "Our AI summarizes, understands, and becomes your digital twin with your personality.",
-    color: "from-accent to-accent/60",
+    number: "02",
+    title: "AI learns your voice",
+    description:
+      "We analyze your writing style, expertise areas, and personality. Your twin speaks like you — not like a generic chatbot.",
   },
   {
-    icon: Globe,
-    title: "Publish Your Profile",
-    description: "Go live with one click. Like publishing a blog, but it's an AI that speaks for you.",
-    color: "from-secondary to-secondary/60",
+    number: "03",
+    title: "Publish your profile",
+    description:
+      "Get a shareable link (profilemu.app/you) or embed the chat widget on your own site. One click to go live.",
   },
   {
-    icon: MessageCircle,
-    title: "Anyone Can Chat",
-    description: "Recruiters, fans, clients — anyone can have meaningful conversations with your AI 24/7.",
-    color: "from-primary to-accent",
+    number: "04",
+    title: "People chat with you",
+    description:
+      "Recruiters, clients, fans — anyone can have a real conversation with your AI. You stay informed, they get answers.",
   },
 ];
 
 export function HowItWorks() {
-  const { ref: headerRef, isInView: headerVisible } = useInView();
-  const { ref: gridRef, isInView: gridVisible } = useInView({ threshold: 0.1 });
+  const { ref, isInView } = useInView({ threshold: 0.1 });
 
   return (
-    <section id="how-it-works" className="py-24 relative bg-muted/20">
-      {/* Decorative top divider */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-      
-      <div className="container mx-auto px-4 relative z-10">
+    <section id="how-it-works" className="py-24 border-t border-border">
+      <div className="container mx-auto px-4" ref={ref}>
         <div
-          ref={headerRef}
-          className={`text-center mb-16 transition-all duration-700 ${
-            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          className={`mb-16 transition-all duration-700 ${
+            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <h2 className="font-display text-4xl md:text-5xl mb-4">
-            How <span className="text-gradient">Profile.Mu</span> Works
+          <p className="text-sm font-medium text-primary uppercase tracking-widest mb-3">How it works</p>
+          <h2 className="font-display text-3xl md:text-5xl tracking-tight max-w-lg">
+            From zero to your AI twin in four steps.
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Four simple steps to create your AI extension that represents you everywhere.
-          </p>
         </div>
 
-        <div ref={gridRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-x-16 gap-y-12 max-w-4xl">
           {steps.map((step, index) => (
-            <Card 
-              key={index} 
-              variant="elevated"
-              className={`group cursor-pointer transition-all duration-700 ${
-                gridVisible
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-10"
+            <div
+              key={index}
+              className={`transition-all duration-700 ${
+                isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
-              style={{ transitionDelay: gridVisible ? `${index * 120}ms` : "0ms" }}
+              style={{ transitionDelay: isInView ? `${index * 100 + 200}ms` : "0ms" }}
             >
-              <CardContent className="p-6 text-center">
-                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300`}>
-                  <step.icon className="w-8 h-8 text-primary-foreground" />
-                </div>
-                
-                <div className="text-sm font-medium text-primary mb-2">Step {index + 1}</div>
-                <h3 className="font-display text-xl mb-3">{step.title}</h3>
-                <p className="text-muted-foreground text-sm">{step.description}</p>
-              </CardContent>
-            </Card>
+              <span className="text-4xl font-display font-bold text-border select-none">
+                {step.number}
+              </span>
+              <h3 className="font-display text-xl mt-2 mb-2">{step.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+            </div>
           ))}
         </div>
       </div>
-
-      {/* Decorative bottom divider */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </section>
   );
 }

@@ -1,89 +1,62 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Briefcase, Users, Heart, Star } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
 
 const useCases = [
   {
-    icon: Briefcase,
-    title: "Talent Discovery",
-    subtitle: "For Professionals",
-    description: "Hiring managers can chat with your AI to understand your skills, experience, and culture fit — even while you sleep.",
-    gradient: "from-primary/20 to-transparent",
+    emoji: "💼",
+    title: "Job seekers",
+    description:
+      "Hiring managers explore your skills and experience in a conversation — even at 2am their time.",
   },
   {
-    icon: Users,
-    title: "Freelancer AI",
-    subtitle: "For Creators",
-    description: "Potential clients can explore your portfolio, ask about your process, and book you — all through your AI twin.",
-    gradient: "from-accent/20 to-transparent",
+    emoji: "🎨",
+    title: "Freelancers",
+    description:
+      "Potential clients learn about your process, see your work, and get pricing — without back-and-forth emails.",
   },
   {
-    icon: Heart,
-    title: "Dating Profile 2.0",
-    subtitle: "For Connections",
-    description: "Let matches chat with your AI to truly get to know you before meeting. Deeper connections, less small talk.",
-    gradient: "from-pink-500/20 to-transparent",
+    emoji: "🎤",
+    title: "Creators & artists",
+    description:
+      "Give fans a way to ask you anything. Scale personal connection without burning out.",
   },
   {
-    icon: Star,
-    title: "Fan Service",
-    subtitle: "For Creators & Artists",
-    description: "Fans can have personal conversations with your AI. Scale intimacy without burning out.",
-    gradient: "from-secondary/30 to-transparent",
+    emoji: "🤝",
+    title: "Founders & leaders",
+    description:
+      "Investors, partners, and press get to know your vision on their own time.",
   },
 ];
 
 export function UseCases() {
-  const { ref: headerRef, isInView: headerVisible } = useInView();
-  const { ref: gridRef, isInView: gridVisible } = useInView({ threshold: 0.1 });
+  const { ref, isInView } = useInView({ threshold: 0.1 });
 
   return (
-    <section id="use-cases" className="py-24 relative">
-      <div className="absolute inset-0 gradient-mesh opacity-20" />
-
-      <div className="container mx-auto px-4 relative z-10">
+    <section id="use-cases" className="py-24 bg-muted/40 border-t border-border">
+      <div className="container mx-auto px-4" ref={ref}>
         <div
-          ref={headerRef}
-          className={`text-center mb-16 transition-all duration-700 ${
-            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          className={`mb-16 max-w-lg transition-all duration-700 ${
+            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <h2 className="font-display text-4xl md:text-5xl mb-4">
-            Endless <span className="text-gradient">Possibilities</span>
+          <p className="text-sm font-medium text-primary uppercase tracking-widest mb-3">Use cases</p>
+          <h2 className="font-display text-3xl md:text-5xl tracking-tight">
+            Built for people who get asked the same questions.
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Your AI twin opens doors you never knew existed. Here's how people are using Profile.Mu.
-          </p>
         </div>
 
-        <div ref={gridRef} className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {useCases.map((useCase, index) => (
-            <Card 
-              key={index} 
-              variant="glass"
-              className={`group overflow-hidden transition-all duration-700 ${
-                gridVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        <div className="grid sm:grid-cols-2 gap-6 max-w-3xl">
+          {useCases.map((item, index) => (
+            <div
+              key={index}
+              className={`p-6 rounded-2xl bg-background border border-border transition-all duration-700 hover:shadow-md-token ${
+                isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
-              style={{ transitionDelay: gridVisible ? `${index * 100}ms` : "0ms" }}
+              style={{ transitionDelay: isInView ? `${index * 80 + 200}ms` : "0ms" }}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${useCase.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-              
-              <CardContent className="p-8 relative z-10">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center shadow-soft shrink-0 min-w-[48px] min-h-[48px]">
-                    <useCase.icon className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  
-                  <div>
-                    <div className="text-xs font-medium text-primary uppercase tracking-wider mb-1">
-                      {useCase.subtitle}
-                    </div>
-                    <h3 className="font-display text-2xl mb-3">{useCase.title}</h3>
-                    <p className="text-muted-foreground">{useCase.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              <span className="text-2xl mb-3 block">{item.emoji}</span>
+              <h3 className="font-display text-lg mb-2">{item.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
+            </div>
           ))}
         </div>
       </div>

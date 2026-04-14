@@ -333,16 +333,11 @@ const Dashboard = () => {
         onComplete={handleExpertiseWizardComplete}
       />
 
-      {/* Background */}
-      <div className="fixed inset-0 gradient-mesh opacity-30 pointer-events-none" />
-      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-hero flex items-center justify-center shadow-soft">
-              <MessageCircle className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <span className="font-display text-xl font-bold tracking-tight">Profile.Mu</span>
             <span className="font-display text-xl">Profile.Mu</span>
           </div>
 
