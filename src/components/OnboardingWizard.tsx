@@ -5,15 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  User,
-  Briefcase,
-  Target,
-  MessageSquare,
-  ArrowRight,
-  ArrowLeft,
-  Check,
-} from "lucide-react";
+import { User, Briefcase, Target, MessageSquare, ArrowRight, ArrowLeft, Check } from "lucide-react";
 
 interface OnboardingData {
   displayName: string;
@@ -121,10 +113,12 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
         return (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="displayName" className="text-sm font-medium">Your name</Label>
+              <Label htmlFor="displayName" className="text-sm font-medium">
+                Your name
+              </Label>
               <Input
                 id="displayName"
-                placeholder="e.g., Fachry Zahirah"
+                placeholder="e.g., Fachry Nuzuli"
                 value={data.displayName}
                 onChange={(e) => handleInputChange("displayName", e.target.value)}
                 autoFocus
@@ -133,7 +127,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-sm font-medium">Short bio</Label>
+              <Label htmlFor="bio" className="text-sm font-medium">
+                Short bio
+              </Label>
               <Textarea
                 id="bio"
                 placeholder="Product leader & startup founder passionate about education technology"
@@ -142,13 +138,13 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
                 rows={3}
                 className="rounded-xl border-border bg-muted/40 focus:bg-background focus:border-primary/40 transition-all duration-200 resize-none"
               />
-              <p className="text-xs text-muted-foreground">
-                Shows as your headline on your public profile
-              </p>
+              <p className="text-xs text-muted-foreground">Shows as your headline on your public profile</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug" className="text-sm font-medium">Profile URL</Label>
+              <Label htmlFor="slug" className="text-sm font-medium">
+                Profile URL
+              </Label>
               <div className="flex items-center gap-0 rounded-xl border border-border bg-muted/40 overflow-hidden focus-within:border-primary/40 focus-within:bg-background transition-all duration-200">
                 <span className="text-sm text-muted-foreground pl-3 pr-1 shrink-0 select-none">profilemu.app/</span>
                 <input
@@ -167,7 +163,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
         return (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="background" className="text-sm font-medium">Professional background</Label>
+              <Label htmlFor="background" className="text-sm font-medium">
+                Professional background
+              </Label>
               <Textarea
                 id="background"
                 placeholder="Your career journey, key roles, and accomplishments..."
@@ -183,7 +181,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="skills" className="text-sm font-medium">Key skills</Label>
+              <Label htmlFor="skills" className="text-sm font-medium">
+                Key skills
+              </Label>
               <Textarea
                 id="skills"
                 placeholder="Product Management, React, Python, Data Analysis, UX Design..."
@@ -200,7 +200,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
         return (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="expertiseAreas" className="text-sm font-medium">What are you an expert in?</Label>
+              <Label htmlFor="expertiseAreas" className="text-sm font-medium">
+                What are you an expert in?
+              </Label>
               <Textarea
                 id="expertiseAreas"
                 placeholder="Building SaaS products, Digital transformation in education, Go-to-market strategy..."
@@ -210,13 +212,13 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
                 autoFocus
                 className="rounded-xl border-border bg-muted/40 focus:bg-background focus:border-primary/40 transition-all duration-200 resize-none"
               />
-              <p className="text-xs text-muted-foreground">
-                Your AI will answer these topics confidently
-              </p>
+              <p className="text-xs text-muted-foreground">Your AI will answer these topics confidently</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expertiseBoundaries" className="text-sm font-medium">What's outside your expertise?</Label>
+              <Label htmlFor="expertiseBoundaries" className="text-sm font-medium">
+                What's outside your expertise?
+              </Label>
               <Textarea
                 id="expertiseBoundaries"
                 placeholder="Legal advice, Medical recommendations, Deep backend architecture..."
@@ -225,9 +227,7 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
                 rows={4}
                 className="rounded-xl border-border bg-muted/40 focus:bg-background focus:border-primary/40 transition-all duration-200 resize-none"
               />
-              <p className="text-xs text-muted-foreground">
-                Your AI will politely defer on these topics
-              </p>
+              <p className="text-xs text-muted-foreground">Your AI will politely defer on these topics</p>
             </div>
           </div>
         );
@@ -236,7 +236,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
         return (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="voiceSamples" className="text-sm font-medium">Writing samples <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Label htmlFor="voiceSamples" className="text-sm font-medium">
+                Writing samples <span className="text-muted-foreground font-normal">(optional)</span>
+              </Label>
               <Textarea
                 id="voiceSamples"
                 placeholder="Paste examples of how you write — emails, tweets, or messages that capture your voice..."
@@ -249,7 +251,9 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="communicationStyle" className="text-sm font-medium">Communication style</Label>
+              <Label htmlFor="communicationStyle" className="text-sm font-medium">
+                Communication style
+              </Label>
               <Textarea
                 id="communicationStyle"
                 placeholder="Friendly but professional, uses humor, keeps things concise, often uses analogies..."
@@ -303,16 +307,16 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
                     step.id < currentStep
                       ? "w-full bg-primary"
                       : step.id === currentStep
-                      ? "bg-primary"
-                      : "w-0 bg-primary"
+                        ? "bg-primary"
+                        : "w-0 bg-primary"
                   }`}
                   style={{
                     width:
                       step.id < currentStep
                         ? "100%"
                         : step.id === currentStep
-                        ? `${((currentStep - 1) / 1) * 100}%`
-                        : "0%",
+                          ? `${((currentStep - 1) / 1) * 100}%`
+                          : "0%",
                     // For current step, fill based on sub-progress — just show full for simplicity
                     ...(step.id === currentStep ? { width: "100%" } : {}),
                   }}
@@ -323,11 +327,7 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
         </CardHeader>
 
         {/* Content with transition */}
-        <CardContent
-          ref={contentRef}
-          className="overflow-y-auto px-6 pb-2"
-          style={{ maxHeight: "calc(92vh - 200px)" }}
-        >
+        <CardContent ref={contentRef} className="overflow-y-auto px-6 pb-2" style={{ maxHeight: "calc(92vh - 200px)" }}>
           <div
             className={`transition-all duration-200 ease-out ${
               isTransitioning
