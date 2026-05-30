@@ -146,7 +146,7 @@ export function OnboardingWizard({ onComplete, onClose }: OnboardingWizardProps)
                 Profile URL
               </Label>
               <div className="flex items-center gap-0 rounded-xl border border-border bg-muted/40 overflow-hidden focus-within:border-primary/40 focus-within:bg-background transition-all duration-200">
-                <span className="text-sm text-muted-foreground pl-3 pr-1 shrink-0 select-none">profilemu.app/</span>
+                <span className="text-sm text-muted-foreground pl-3 pr-1 shrink-0 select-none">visible.web.id/</span>
                 <input
                   id="slug"
                   placeholder="your-name"

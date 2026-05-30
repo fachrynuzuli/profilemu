@@ -17,7 +17,7 @@ const steps = [
     number: "03",
     title: "Publish your profile",
     description:
-      "Get a shareable link (profilemu.app/you) or embed the chat widget on your own site. One click to go live.",
+      "Get a shareable link (visible.web.id/you) or embed the chat widget on your own site. One click to go live.",
   },
   {
     number: "04",
@@ -53,9 +53,7 @@ export function HowItWorks() {
               }`}
               style={{ transitionDelay: isInView ? `${index * 100 + 200}ms` : "0ms" }}
             >
-              <span className="text-4xl font-display font-bold text-border select-none">
-                {step.number}
-              </span>
+              <span className="text-4xl font-display font-bold text-border select-none">{step.number}</span>
               <h3 className="font-display text-xl mt-2 mb-2">{step.title}</h3>
               <p className="text-muted-foreground leading-relaxed">{step.description}</p>
             </div>

@@ -60,12 +60,7 @@ export function ShareProfileButton({ slug, displayName }: ShareProfileButtonProp
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleNativeShare}
-      className="gap-2"
-    >
+    <Button variant="ghost" size="sm" onClick={handleNativeShare} className="gap-2">
       {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
       Share Profile
     </Button>
@@ -89,7 +84,7 @@ export function ShareChatButton({ messages, displayName }: ShareChatButtonProps)
         return `${prefix}\n${msg.content}`;
       })
       .join("\n\n---\n\n");
-    const footer = `\n\n🔗 Create your own AI twin at profilemu.dev`;
+    const footer = `\n\n🔗 Create your own AI twin at visible`;
     return header + conversation + footer;
   };
 
